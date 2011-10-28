@@ -1,0 +1,113 @@
+div.fieldset {
+	border:1px solid #afe14c;
+	margin: 10px 0;
+	padding: 0 10px;
+    min-height:50px;
+    _height:50px;
+}
+div.fieldset span.legend {
+	position: relative;
+	background-color: #EEE;
+	padding: 3px;
+	top: -10px;
+	font: 700 14px Arial, Helvetica, sans-serif;
+}
+
+div.flash {
+	width: 375px;
+	margin: 10px 5px;
+	border-color: #d0d0bf;
+	-moz-border-radius-topleft: 5px;
+	-webkit-border-top-left-radius: 5px;
+    -moz-border-radius-topright: 5px;
+    -webkit-border-top-right-radius: 5px;
+    -moz-border-radius-bottomleft: 5px;
+    -webkit-border-bottom-left-radius: 5px;
+    -moz-border-radius-bottomright: 5px;
+    -webkit-border-bottom-right-radius: 5px;
+}
+
+.progressWrapper {
+	width:377px;
+	overflow:hidden;
+}
+
+.progressContainer {
+	margin: 5px;
+	padding: 4px;
+	border: solid 1px #E8E8E8;
+	background-color: #F7F7F7;
+	overflow: hidden;
+}
+
+.progressName {
+	font:700 11px  Arial, Helvetica, sans-serif;
+	color:#4e3333;
+	text-align:left;
+	white-space:nowrap;
+	overflow:hidden;
+}
+
+.progressBarInProgress, .progressBarStatik {
+	margin-top:-11px;
+	font-size: 9px;
+	width: 0%;
+	background:url(../upl_progress_enabled.gif) repeat-x 0 0;
+	height:12px;
+	color:#000;
+}
+
+.progressBarStatik {
+	margin-top:4px;
+	width:100%;
+	text-align:center;
+	background:url(../upl_progress_disabled.gif) repeat-x 0 1px;
+}
+
+.progressComplete .progressBarInProgress, .progressError .progressBarInProgress, 
+.progressCancelled .progressBarInProgress, .progressComplete .progressBarStatik,
+.progressCancelled .progressBarStatik, .progressError .progressBarStatik {
+	visibility:hidden
+}
+
+.progressComplete {
+	border:1px solid #73b304;
+	background-color:#e2fdcb;
+}
+
+.progressError {
+	border:1px solid #ed2024;
+}
+
+.progressCancelled {
+	border:1px solid #ed2024;
+}
+
+.progressBarStatus {
+	margin-top: 2px;
+	width: 337px;
+	font-size: 7pt;
+	font-family: Arial;
+	text-align: left;
+	color:#818284;
+	white-space: nowrap;
+}
+
+a.progressCancel {
+	font-size: 0;
+	display: block;
+	height: 14px;
+	width: 14px;
+	background-image: url(remove.jpg);
+	background-repeat: no-repeat;
+	background-position: 0px 0px;
+	float: right;
+}
+
+a.progressCancel:hover {
+	background-position: 0px -15px;
+}
+
+.swfupload {
+	vertical-align: top;
+}

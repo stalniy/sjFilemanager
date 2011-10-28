@@ -1,0 +1,55 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Медиа менеджер на странице</title>
+    <meta http-equiv="imagetoolbar" content="no" />
+    <script type="text/javascript" src="../../web/js/lang/lang_ru.js"></script>
+    <script type="text/javascript" src="../../web/js/sjs/sjs.js"></script>
+    <script type="text/javascript" src="../../web/js/sjs/sjs.request.js"></script>
+    <script type="text/javascript" src="../../web/js/sjs/sjs.animate.js"></script>
+    <script type="text/javascript" src="../../web/js/sjs/sjs.mouse.js"></script>
+    <script type="text/javascript" src="../../web/js/mediamanager.js"></script>
+    <link href="../../web/css/sjmm.css" rel="stylesheet" type="text/css" />
+    <link href="../../web/css/sjfm.css" rel="stylesheet" type="text/css" />
+    <style type="text/css">
+        #sjMediamanager {min-height: 300px}
+        .fixMediaManager #sjMediamanager {overflow: auto !important}
+    </style>
+    <script type="text/javascript">
+        sjs.ready(function(){
+            MediaManager.renderView($_LANG);
+            var baseUrl = '../../web/',
+                rootUrl = '/uploads/sjFilemanager',
+                wrap = sjs('#sjMediamanager')
+                    .appendTo('#wrap')
+                    .show(true)
+                    .width(800)
+                    .find('.sjMediaWrapper');
+
+            var mm = MediaManager.getInstance(wrap, {
+                panel: '.sjMediaPanel',
+                saveUrl: baseUrl,
+                mode: 'full'
+            });
+            mm.setIsSleepy(false).setFiles([
+                rootUrl + '/DSC02886.JPG',
+                rootUrl + '/trustme.jpg',
+                rootUrl + '/ball.swf',
+                rootUrl + '/no_bug.jpg'
+            ]).showFile();
+        })
+    </script>
+    <!-- @includer -->
+</head>
+
+<body>
+    <div style="margin:30px;">
+        <h3>Страница для манипуляции медиа файлами</h3>
+        <small>если Вы не видите файлов значит кто-то НАШКОДИЛ и удалил их</small>
+        <div id="wrap" class="fixMediaManager" style="position:relative">
+            <div id="sjPopup"></div>
+        </div>
+    </div>
+</body>
+</html>

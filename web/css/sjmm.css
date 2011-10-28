@@ -1,0 +1,277 @@
+.vmiddle-fix {
+    display: inline-block;
+    width:0; height:0;
+}
+
+#sjMediamanager {
+    display: none;
+    background: #fff;
+    height: 398px;
+    width: 300px;
+    border: 2px solid #ccc;
+    position: absolute;
+    top: 24px; right: 3px;
+    text-align: center;
+    z-index: 10;
+}
+
+.fixMediaManager {
+    position: relative;
+    z-index: 10;
+}
+
+.fixMediaManager #sjMediamanager {
+    position: relative !important;
+    top: auto !important; right: auto !important;
+    overflow: visible !important;
+    width: auto !important;
+    height: auto !important;
+}
+
+#sjMediamanager .sjMediaPanel:hover {
+    opacity:1;
+    z-index: 11;
+}
+
+#sjMediamanager .sjMediaPanel .sjDisabled {
+    opacity:0.5;
+    filter:progid:DXImageTransform.Microsoft.Alpha(opacity=50);
+    background-color: #fff;
+    zoom: 1;
+}
+
+#sjMediamanager .sjMediaPanel
+ {
+    position:absolute;
+    top: 2px; right: 4px;
+    opacity:0.5;
+    text-align: right;
+    z-index: 100;
+    line-height: normal;
+    display: inline-block;
+}
+
+.sjPreviewMode .sjMediaPanel .forFullMode,
+.fixMediaManager #sjWrapper {
+    display: none !important;
+}
+
+#sjMediamanager .sjMediaPanel .imageOnly {
+    display: none;
+}
+
+.sjMediaPanel a, #sjMediamanager .saveTools a {
+    display: inline-block;
+    width: 20px; height: 20px;
+    line-height: 20px;
+    margin-left: 7px;
+    background-repeat: no-repeat;
+    background-position: center center;
+}
+
+.sjMediaPanel .resize {
+    background-image: url(../img/media/resize.png);
+}
+
+.sjMediaPanel .crop {
+    background-image: url(../img/media/crop.png);
+}
+
+.sjMediaPanel .watermark {
+    background-image: url(../img/media/watermark.png);
+}
+
+.sjMediaPanel .save {
+    background-image: url(../img/media/save.png);
+}
+
+.sjMediaPanel .halt {
+    background-image: url(../img/media/halt.png);
+}
+
+.sjPreviewMode .sjMediaPanel .changeMode {
+    background-image: url(../img/media/arrow-out.png) !important;
+}
+
+.sjMediaPanel .changeMode {
+    background-image: url(../img/media/arrow-in.png);
+}
+
+.sjMediaPanel .next {
+    width: 16px;
+    background-image: url(../img/media/next.png);
+}
+
+.sjMediaPanel .prev {
+    width: 16px;
+    background-image: url(../img/media/prev.png);
+}
+
+#sjMediamanager .sjImageType .imageOnly {
+    display: inline-block;
+}
+
+.showMediaManager {
+    background-image: url(../img/media/media.png);
+}
+
+#sjMediamanager .sjMediaTools {
+    -moz-border-radius: 6px;
+    -webkit-border-radius: 6px;
+    border-radius: 6px;
+    background: none repeat scroll 0 0 #FFFFFF;
+    border: 1px solid #000000;
+    margin-top: -6px;
+    padding: 3px 0 ;
+    width: 100%;
+    min-width: 50px;
+    z-index:-1; zoom: 1;
+    position:relative;
+}
+
+#sjMediamanager .sjMediaTools div.tools {
+    display: none;
+    font-size: 70%;
+    width: 205px;
+}
+
+#sjMediamanager .sjMediaTools input.text {
+    font-size: 100%;
+    border: 1px solid #E0E0E0;
+    width: 40px;
+    margin-bottom: 5px;
+}
+
+#sjMediamanager .sjMediaTools label {
+    margin-left: 5px;
+    width: 53px;
+}
+
+#sjMediamanager .sjMediaTools label.prop,
+#sjMediamanager .sjMediaPanel .saveTools label {
+    width: auto !important;
+}
+
+#sjMediamanager .sjMediaTools input,
+#sjMediamanager .sjMediaTools label {
+    vertical-align: middle;
+    float: none !important;
+    display:inline-block;
+}
+
+#sjMediamanager div.tools {
+    margin: 5px;
+}
+
+#sjMediamanager .sjMediaWrapper,
+#sjMediamanager .sjMediaLayer img,
+#sjMediamanager .sjMediaHolder,
+#sjMediamanager .sjMediaLayer {
+    position: absolute;
+    z-index: 10;
+    top: 0; left:0;
+}
+#sjMediamanager .sjMediaWrapper {
+    position: relative;
+    top: auto; left: auto;
+    margin: 10px;
+    *top: 10px;
+    *margin-top:0;
+    display: inline-block;
+    line-height: normal;
+    vertical-align: middle;
+}
+
+#sjMediamanager .sjLining {
+    z-index: 12;
+    background-color: #000;
+    opacity: 0.8;
+}
+#sjMediamanager .sjMediaHolder {
+    zoom:1;
+    z-index: 15;
+}
+
+#sjMediamanager .sjsResize {
+    background: url(../img/media/border.gif) repeat;
+}
+
+#sjMediamanager .n, #sjMediamanager .s {
+    background-repeat: repeat-x;
+    background-position: 0 -7px;
+}
+
+#sjMediamanager .s {
+    background-position: 0 2px;
+}
+
+#sjMediamanager .e, #sjMediamanager .w {
+    background-repeat: repeat-y;
+    background-position: -7px 0;
+}
+#sjMediamanager .e {
+    background-position: 2px 0;
+}
+
+
+#sjMediamanager .ne, #sjMediamanager .nw, #sjMediamanager .sw {
+    top: -4px; left: -4px;
+}
+
+#sjMediamanager .ne, #sjMediamanager .se {
+    left: auto; right: -4px;
+}
+
+#sjMediamanager .se, #sjMediamanager .sw {
+    top: auto; bottom: -4px; right: -4px;
+}
+
+#sjMediamanager .ne, #sjMediamanager .nw,
+#sjMediamanager .se, #sjMediamanager .sw {
+    width: 8px; height: 8px;
+    border: 1px solid #eee;
+    background: #333;
+    opacity: 0.5;
+    filter:progid:DXImageTransform.Microsoft.Alpha(opacity=50);
+}
+
+#sjMediamanager .sjMediaLayer {
+    z-index: 20
+}
+#sjMediamanager .sjMediaLayer img {
+    z-index: 9
+}
+
+#sjMediamanager .disabledBar {
+
+}
+
+#sjMediamanager .saveTools input.file {
+    width: 125px;
+}
+
+#sjMediamanager .saveTools a.apply {
+    background-image: url(../img/media/apply.png);
+}
+
+#sjMediamanager .saveTools a.cancel {
+    background-image: url(../img/media/cancel.png);
+}
+.v-wrap {
+    display:inline-block;
+    text-align:left;
+    vertical-align:top;
+}
+.loading-mask {
+    position: static;
+    width: 100%; height: 100%;
+    background: #000 url(../img/big-load.gif) no-repeat center center;
+    z-index: 800;
+    position: absolute;
+    top: 0; left: 0;
+}
+
+#sjMediamanager .unknown-file {
+    width: 100%; height:100%;
+    background: url(../img/unknown-file.gif) no-repeat center center;
+}

@@ -1,0 +1,825 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+  <html xmlns="http://www.w3.org/1999/xhtml">
+		<head>
+			<!-- template designed by Marco Von Ballmoos -->
+			<title>Docs For Class iFilesystem</title>
+			<link rel="stylesheet" href="../media/stylesheet.css" />
+			<meta http-equiv='Content-Type' content='text/html; charset=iso-8859-1'/>
+		</head>
+		<body>
+			<div class="page-body">			
+<h2 class="class-name">Class iFilesystem</h2>
+
+<a name="sec-description"></a>
+<div class="info-box">
+	<div class="info-box-title">Description</div>
+	<div class="nav-bar">
+					<span class="disabled">Description</span> |
+													<a href="#sec-vars">Vars</a>
+						|											<a href="#sec-method-summary">Methods</a> (<a href="#sec-methods">details</a>)
+						
+					</div>
+	<div class="info-box-body">
+                <p class="implements">
+            Implements interfaces:
+            <ul>
+                <li><a href="../iFilemanager/sjFilesystem.html">sjFilesystem</a></li>            </ul>
+        </p>
+        		<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Filesystem class is based on sfFilesystem, implements sjFilesystem interface  and more complex than parent</p>
+	<ul class="tags">
+				<li><span class="field">author:</span> Stotskiy Sergiy &lt;<a href="mailto:serjo@freaksidea.com">serjo@freaksidea.com</a>&gt;</li>
+				<li><span class="field">version:</span> SVN: $Id$</li>
+			</ul>
+		<p class="notes">
+			Located in <a class="field" href="_iFilemanager.class.php.html">/iFilemanager.class.php</a> (line <span class="field">124</span>)
+		</p>
+		
+				
+		<pre><a href="../symfony/util/sfFilesystem.html">sfFilesystem</a>
+   |
+   --iFilesystem</pre>
+	
+			</div>
+</div>
+
+
+
+
+	<a name="sec-method-summary"></a>
+	<div class="info-box">
+		<div class="info-box-title">Method Summary</span></div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+																		<a href="#sec-vars">Vars</a>
+				 
+				|
+						<span class="disabled">Methods</span> (<a href="#sec-methods">details</a>)
+		</div>
+		<div class="info-box-body">			
+			<div class="method-summary">
+																																												<div class="method-definition">
+					static 						<span class="method-result">int</span>
+										<a href="#doSort" title="details" class="method-name">doSort</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$path1</span>, <span class="var-type">string</span>&nbsp;<span class="var-name">$path2</span>)
+									</div>
+																																																																																																								
+												<div class="method-definition">
+											<span class="method-result">string</span>
+										<a href="#canonicPath" title="details" class="method-name">canonicPath</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$path</span>)
+									</div>
+																<div class="method-definition">
+											<span class="method-result">bool</span>
+										<a href="#copy" title="details" class="method-name">copy</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$originFile</span>, <span class="var-type">string</span>&nbsp;<span class="var-name">$targetFile</span>, [<span class="var-type">array</span>&nbsp;<span class="var-name">$options</span> = <span class="var-default">array()</span>])
+									</div>
+																<div class="method-definition">
+											<span class="method-result">bool|$imageClass</span>
+										<a href="#createImage" title="details" class="method-name">createImage</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$path</span>, [<span class="var-type">bool</span>&nbsp;<span class="var-name">$override</span> = <span class="var-default">true</span>])
+									</div>
+																<div class="method-definition">
+											<span class="method-result">int</span>
+										<a href="#dirsize" title="details" class="method-name">dirsize</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$path</span>)
+									</div>
+																								<div class="method-definition">
+											<span class="method-result">string</span>
+										<a href="#dynamicFileName" title="details" class="method-name">dynamicFileName</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$file</span>)
+									</div>
+																<div class="method-definition">
+											<span class="method-result">string</span>
+										<a href="#formatDate" title="details" class="method-name">formatDate</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$date</span>, [<span class="var-type"></span>&nbsp;<span class="var-name">$format</span> = <span class="var-default">'Y-m-d H:i:s'</span>])
+									</div>
+																<div class="method-definition">
+											<span class="method-result">string</span>
+										<a href="#formatSize" title="details" class="method-name">formatSize</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$file</span>)
+									</div>
+																<div class="method-definition">
+											<span class="method-result">bool|array</span>
+										<a href="#getMimeType" title="details" class="method-name">getMimeType</a>
+											(<span class="var-type">string|array</span>&nbsp;<span class="var-name">$files</span>)
+									</div>
+																<div class="method-definition">
+											<span class="method-result">string</span>
+										<a href="#getMode" title="details" class="method-name">getMode</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$target</span>)
+									</div>
+																<div class="method-definition">
+											<span class="method-result">array|string</span>
+										<a href="#getPathInfo" title="details" class="method-name">getPathInfo</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$path</span>, [<span class="var-type">int</span>&nbsp;<span class="var-name">$flags</span> = <span class="var-default">null</span>])
+									</div>
+																<div class="method-definition">
+											<span class="method-result">array</span>
+										<a href="#mirror" title="details" class="method-name">mirror</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$originDir</span>, <span class="var-type">string</span>&nbsp;<span class="var-name">$targetDir</span>, [<span class="var-type"></span>&nbsp;<span class="var-name">$options</span> = <span class="var-default">array()</span>])
+									</div>
+																<div class="method-definition">
+											<span class="method-result">array</span>
+										<a href="#orderBy" title="details" class="method-name">orderBy</a>
+											(<span class="var-type"></span>&nbsp;<span class="var-name">$files</span>, [<span class="var-type">callable</span>&nbsp;<span class="var-name">$callback</span> = <span class="var-default">null</span>])
+									</div>
+																<div class="method-definition">
+											<span class="method-result">string</span>
+										<a href="#prepareFilename" title="details" class="method-name">prepareFilename</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$filename</span>)
+									</div>
+																<div class="method-definition">
+											<span class="method-result">array</span>
+										<a href="#readDir" title="details" class="method-name">readDir</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$path</span>, [<span class="var-type">string</span>&nbsp;<span class="var-name">$mode</span> = <span class="var-default">null</span>], [<span class="var-type"></span>&nbsp;<span class="var-name">$options</span> = <span class="var-default">null</span>])
+									</div>
+																<div class="method-definition">
+											<span class="method-result">void</span>
+										<a href="#saveImage" title="details" class="method-name">saveImage</a>
+											(<span class="var-type">imageClass</span>&nbsp;<span class="var-name">$image</span>, <span class="var-type">string</span>&nbsp;<span class="var-name">$targetFile</span>, [<span class="var-type"></span>&nbsp;<span class="var-name">$options</span> = <span class="var-default">array()</span>])
+									</div>
+																<div class="method-definition">
+											<span class="method-result">array</span>
+										<a href="#stat" title="details" class="method-name">stat</a>
+											(<span class="var-type"></span>&nbsp;<span class="var-name">$target</span>, <span class="var-type">string</span>&nbsp;<span class="var-name">$targer</span>)
+									</div>
+								</div>
+		</div>
+	</div>		
+
+	<a name="sec-vars"></a>
+	<div class="info-box">
+		<div class="info-box-title">Variables</div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+										<a href="#sec-var-summary">Vars</a> (<span class="disabled">details</span>)
+						
+			
+										| 
+									<a href="#sec-method-summary">Methods</a> (<a href="#sec-methods">details</a>)
+							
+					</div>
+		<div class="info-box-body">
+										<h4>Inherited Variables</h4>
+				<A NAME='inherited_vars'><!-- --></A>
+									<p>Inherited from <span class="classname"><a href="../symfony/util/sfFilesystem.html">sfFilesystem</a></span></p>
+					<blockquote>
+													<span class="var-title">
+								<span class="var-name"><a href="../symfony/util/sfFilesystem.html#var$dispatcher">sfFilesystem::$dispatcher</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../symfony/util/sfFilesystem.html#var$formatter">sfFilesystem::$formatter</a></span><br>
+							</span>
+											</blockquote> 
+										
+		</div>
+	</div>
+	
+	<a name="sec-methods"></a>
+	<div class="info-box">
+		<div class="info-box-title">Methods</div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+															<a href="#sec-vars">Vars</a>
+																	<a href="#sec-method-summary">Methods</a> (<span class="disabled">details</span>)
+						
+		</div>
+		<div class="info-box-body">
+			<A NAME='method_detail'></A>
+<a name="methoddoSort" id="doSort"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method doSort</span> (line <span class="line-number">142</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Sort first directories then files</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> protected</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">int</span>
+		<span class="method-name">
+			doSort
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$path1</span>, <span class="var-type">string</span>&nbsp;<span class="var-name">$path2</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$path1</span>			</li>
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$path2</span>			</li>
+				</ul>
+		
+			
+	</div>
+
+<a name="methodcanonicPath" id="canonicPath"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">canonicPath</span> (line <span class="line-number">348</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Canonicalize path</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">string</span>
+		<span class="method-name">
+			canonicPath
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$path</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$path</span><span class="var-description">: filesystem path</span>			</li>
+				</ul>
+		
+				<hr class="separator" />
+		<div class="notes">Implementation of:</div>
+			<dl>
+			<dt><a href="../iFilemanager/sjFilesystem.html#methodcanonicPath">sjFilesystem::canonicPath()</a></dt>
+						<dd>Canonicalize path</dd>
+					</dl>
+			
+	</div>
+<a name="methodcopy" id="copy"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">copy</span> (line <span class="line-number">400</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Copies a file.</p>
+<p class="description"><p>By default, if the target already exists, it is not overriden.  To override existing files, pass the &quot;override&quot; option.  To create uniq file name, pass the &quot;dynamic_name&quot; option.  To process images files, you may pass &quot;image&quot; and &quot;thumbs&quot; options like arrays.  Image option format:  <ul><li>int &quot;width&quot; - width</li><li>int &quot;height&quot; - height</li><li>string &quot;type&quot; - resize mode (width, height, auto, zoom, crop)</li><li>string &quot;crop&quot; - crop type (left-top, left-bottom, right-top, right-bottom, center, specific array('x' =&gt; int, 'y' =&gt; int))</li></ul>  If you passed the &quot;crop&quot; image option then after resizing image will be croped using some of specific methods, otherwise it will be only resized</p></p>
+	<ul class="tags">
+				<li><span class="field">return:</span> if file copied</li>
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">bool</span>
+		<span class="method-name">
+			copy
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$originFile</span>, <span class="var-type">string</span>&nbsp;<span class="var-name">$targetFile</span>, [<span class="var-type">array</span>&nbsp;<span class="var-name">$options</span> = <span class="var-default">array()</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$originFile</span><span class="var-description">: The original filename</span>			</li>
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$targetFile</span><span class="var-description">: The target filename</span>			</li>
+					<li>
+				<span class="var-type">array</span>
+				<span class="var-name">$options</span><span class="var-description">: An array of options</span>			</li>
+				</ul>
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../symfony/util/sfFilesystem.html#methodcopy">sfFilesystem::copy()</a></dt>
+						<dd>Copies a file.</dd>
+					</dl>
+				<hr class="separator" />
+		<div class="notes">Implementation of:</div>
+			<dl>
+			<dt><a href="../iFilemanager/sjFilesystem.html#methodcopy">sjFilesystem::copy()</a></dt>
+						<dd>Copy source to destination with special $options.</dd>
+					</dl>
+			
+	</div>
+<a name="methodcreateImage" id="createImage"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">createImage</span> (line <span class="line-number">430</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Create image object interface to working with images when copies files</p>
+	<ul class="tags">
+				<li><span class="field">return:</span> false or instance of self::$imageClass</li>
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">bool|$imageClass</span>
+		<span class="method-name">
+			createImage
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$path</span>, [<span class="var-type">bool</span>&nbsp;<span class="var-name">$override</span> = <span class="var-default">true</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$path</span>			</li>
+					<li>
+				<span class="var-type">bool</span>
+				<span class="var-name">$override</span>			</li>
+				</ul>
+		
+			
+	</div>
+<a name="methoddirsize" id="dirsize"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">dirsize</span> (line <span class="line-number">176</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Calculate directory size. Return result in bytes</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">int</span>
+		<span class="method-name">
+			dirsize
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$path</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$path</span>			</li>
+				</ul>
+		
+				<hr class="separator" />
+		<div class="notes">Implementation of:</div>
+			<dl>
+			<dt><a href="../iFilemanager/sjFilesystem.html#methoddirsize">sjFilesystem::dirsize()</a></dt>
+						<dd>Calculate directoty size</dd>
+					</dl>
+			
+	</div>
+<a name="methoddynamicFileName" id="dynamicFileName"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">dynamicFileName</span> (line <span class="line-number">312</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Return uniq file name</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">string</span>
+		<span class="method-name">
+			dynamicFileName
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$file</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$file</span><span class="var-description">: path to file</span>			</li>
+				</ul>
+		
+				<hr class="separator" />
+		<div class="notes">Implementation of:</div>
+			<dl>
+			<dt><a href="../iFilemanager/sjFilesystem.html#methoddynamicFileName">sjFilesystem::dynamicFileName()</a></dt>
+						<dd>Generate uniq file name</dd>
+					</dl>
+			
+	</div>
+<a name="methodformatDate" id="formatDate"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">formatDate</span> (line <span class="line-number">515</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Format date in human readable format. Use built in &quot;date&quot; function</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">string</span>
+		<span class="method-name">
+			formatDate
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$date</span>, [<span class="var-type"></span>&nbsp;<span class="var-name">$format</span> = <span class="var-default">'Y-m-d H:i:s'</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$date</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$format</span>			</li>
+				</ul>
+		
+			
+	</div>
+<a name="methodformatSize" id="formatSize"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">formatSize</span> (line <span class="line-number">481</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Format size in human readable format</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">string</span>
+		<span class="method-name">
+			formatSize
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$file</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$file</span><span class="var-description">: path to file</span>			</li>
+				</ul>
+		
+			
+	</div>
+<a name="methodgetMimeType" id="getMimeType"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">getMimeType</span> (line <span class="line-number">285</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Get files mime type</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">bool|array</span>
+		<span class="method-name">
+			getMimeType
+		</span>
+					(<span class="var-type">string|array</span>&nbsp;<span class="var-name">$files</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string|array</span>
+				<span class="var-name">$files</span>			</li>
+				</ul>
+		
+				<hr class="separator" />
+		<div class="notes">Implementation of:</div>
+			<dl>
+			<dt><a href="../iFilemanager/sjFilesystem.html#methodgetMimeType">sjFilesystem::getMimeType()</a></dt>
+						<dd>Get mime type of file</dd>
+					</dl>
+			
+	</div>
+<a name="methodgetMode" id="getMode"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">getMode</span> (line <span class="line-number">338</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Get file access mode</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">string</span>
+		<span class="method-name">
+			getMode
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$target</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$target</span><span class="var-description">: directory or file</span>			</li>
+				</ul>
+		
+				<hr class="separator" />
+		<div class="notes">Implementation of:</div>
+			<dl>
+			<dt><a href="../iFilemanager/sjFilesystem.html#methodgetMode">sjFilesystem::getMode()</a></dt>
+						<dd>Get file access mode</dd>
+					</dl>
+			
+	</div>
+<a name="methodgetPathInfo" id="getPathInfo"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">getPathInfo</span> (line <span class="line-number">527</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Get path info. This method is analog of built in &quot;pathinfo&quot;.</p>
+<p class="description"><p>But it can process files with utf8 names</p></p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">array|string</span>
+		<span class="method-name">
+			getPathInfo
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$path</span>, [<span class="var-type">int</span>&nbsp;<span class="var-name">$flags</span> = <span class="var-default">null</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$path</span>			</li>
+					<li>
+				<span class="var-type">int</span>
+				<span class="var-name">$flags</span><span class="var-description">: see pathinfo()</span>			</li>
+				</ul>
+		
+			
+	</div>
+<a name="methodmirror" id="mirror"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">mirror</span> (line <span class="line-number">361</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Mirrors a directory to another.</p>
+	<ul class="tags">
+				<li><span class="field">return:</span> Processed items</li>
+				<li><span class="field">throws:</span> sjException</li>
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">array</span>
+		<span class="method-name">
+			mirror
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$originDir</span>, <span class="var-type">string</span>&nbsp;<span class="var-name">$targetDir</span>, [<span class="var-type"></span>&nbsp;<span class="var-name">$options</span> = <span class="var-default">array()</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$originDir</span><span class="var-description">: The origin directory</span>			</li>
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$targetDir</span><span class="var-description">: The target directory</span>			</li>
+					<li>
+				<span class="var-type">array</span>
+				<span class="var-name">$options</span><span class="var-description">: An array of options (see copy())</span>			</li>
+				</ul>
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../symfony/util/sfFilesystem.html#methodmirror">sfFilesystem::mirror()</a></dt>
+						<dd>Mirrors a directory to another.</dd>
+					</dl>
+			
+	</div>
+<a name="methodorderBy" id="orderBy"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">orderBy</span> (line <span class="line-number">256</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Sort files by specific callback. By default use $this-&gt;doSort</p>
+	<ul class="tags">
+				<li><span class="field">return:</span> - array of sorted files</li>
+				<li><span class="field">see:</span> <a href="../iFilemanager/iFilesystem.html#methoddoSort">iFilesystem::doSort()</a></li>
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">array</span>
+		<span class="method-name">
+			orderBy
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$files</span>, [<span class="var-type">callable</span>&nbsp;<span class="var-name">$callback</span> = <span class="var-default">null</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">array</span>
+				<span class="var-name">$files</span>			</li>
+					<li>
+				<span class="var-type">callable</span>
+				<span class="var-name">$callback</span>			</li>
+				</ul>
+		
+			
+	</div>
+<a name="methodprepareFilename" id="prepareFilename"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">prepareFilename</span> (line <span class="line-number">159</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Prepare file name. Replace bad symbols to &quot;-&quot;</p>
+	<ul class="tags">
+				<li><span class="field">return:</span> cleanuped file name</li>
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">string</span>
+		<span class="method-name">
+			prepareFilename
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$filename</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$filename</span>			</li>
+				</ul>
+		
+			
+	</div>
+<a name="methodreadDir" id="readDir"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">readDir</span> (line <span class="line-number">202</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Read directory using built in iterators.</p>
+<p class="description"><p>Options format:  <ul><li>int    &quot;flags&quot; - use only for recursive mode. Passed in RecursiveIteratorIterator constructor</li><li>string &quot;skip&quot;  - skip regular expression.</li><li>bool   &quot;relative&quot; - return list of files with relative path. By default return absolute path for each file.</li><li>bool   &quot;with_dir&quot; - use for relative mode to return file's path with current dir name</li><li>bool|callback &quot;sort&quot; - sort files by specific callaback. By default use $this-&gt;doSort method</li></ul></p></p>
+	<ul class="tags">
+				<li><span class="field">return:</span> list of files and/or directories</li>
+				<li><span class="field">see:</span> <a href="../iFilemanager/iFilesystem.html#methoddoSort">iFilesystem::doSort()</a></li>
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">array</span>
+		<span class="method-name">
+			readDir
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$path</span>, [<span class="var-type">string</span>&nbsp;<span class="var-name">$mode</span> = <span class="var-default">null</span>], [<span class="var-type"></span>&nbsp;<span class="var-name">$options</span> = <span class="var-default">null</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$path</span><span class="var-description">: path to directory</span>			</li>
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$mode</span><span class="var-description">: if mode equal &quot;r&quot; is recursive mode, otherwise use simple mode</span>			</li>
+					<li>
+				<span class="var-type">array</span>
+				<span class="var-name">$options</span>			</li>
+				</ul>
+		
+				<hr class="separator" />
+		<div class="notes">Implementation of:</div>
+			<dl>
+			<dt><a href="../iFilemanager/sjFilesystem.html#methodreadDir">sjFilesystem::readDir()</a></dt>
+						<dd>Read directory in specific mode. Use built in directory iterators.</dd>
+					</dl>
+			
+	</div>
+<a name="methodsaveImage" id="saveImage"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">saveImage</span> (line <span class="line-number">449</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Process saving of image</p>
+	<ul class="tags">
+				<li><span class="field">throws:</span> sjException</li>
+				<li><span class="field">access:</span> protected</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			saveImage
+		</span>
+					(<span class="var-type">imageClass</span>&nbsp;<span class="var-name">$image</span>, <span class="var-type">string</span>&nbsp;<span class="var-name">$targetFile</span>, [<span class="var-type"></span>&nbsp;<span class="var-name">$options</span> = <span class="var-default">array()</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">imageClass</span>
+				<span class="var-name">$image</span>			</li>
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$targetFile</span>			</li>
+					<li>
+				<span class="var-type">array</span>
+				<span class="var-name">$options</span><span class="var-description">: (see copy() method)</span>			</li>
+				</ul>
+		
+			
+	</div>
+<a name="methodstat" id="stat"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">stat</span> (line <span class="line-number">269</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Return target information, like inode, number links, etc.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">array</span>
+		<span class="method-name">
+			stat
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$target</span>, <span class="var-type">string</span>&nbsp;<span class="var-name">$targer</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$targer</span><span class="var-description">: - directory or file</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$target</span>			</li>
+				</ul>
+		
+			
+	</div>
+							<h4>Inherited Methods</h4>
+				<a name='inherited_methods'><!-- --></a>	
+									<!-- =========== Summary =========== -->
+					<p>Inherited From <span class="classname"><a href="../symfony/util/sfFilesystem.html">sfFilesystem</a></span></p>
+					<blockquote>
+													<span class="method-name"><a href="../symfony/util/sfFilesystem.html#method__construct">sfFilesystem::__construct()</a></span><br>
+													<span class="method-name"><a href="../symfony/util/sfFilesystem.html#methodcalculateRelativeDir">sfFilesystem::calculateRelativeDir()</a></span><br>
+													<span class="method-name"><a href="../symfony/util/sfFilesystem.html#methodcanonicalizePath">sfFilesystem::canonicalizePath()</a></span><br>
+													<span class="method-name"><a href="../symfony/util/sfFilesystem.html#methodchmod">sfFilesystem::chmod()</a></span><br>
+													<span class="method-name"><a href="../symfony/util/sfFilesystem.html#methodcopy">sfFilesystem::copy()</a></span><br>
+													<span class="method-name"><a href="../symfony/util/sfFilesystem.html#methodexecute">sfFilesystem::execute()</a></span><br>
+													<span class="method-name"><a href="../symfony/util/sfFilesystem.html#methodlogSection">sfFilesystem::logSection()</a></span><br>
+													<span class="method-name"><a href="../symfony/util/sfFilesystem.html#methodmirror">sfFilesystem::mirror()</a></span><br>
+													<span class="method-name"><a href="../symfony/util/sfFilesystem.html#methodmkdirs">sfFilesystem::mkdirs()</a></span><br>
+													<span class="method-name"><a href="../symfony/util/sfFilesystem.html#methodrelativeSymlink">sfFilesystem::relativeSymlink()</a></span><br>
+													<span class="method-name"><a href="../symfony/util/sfFilesystem.html#methodremove">sfFilesystem::remove()</a></span><br>
+													<span class="method-name"><a href="../symfony/util/sfFilesystem.html#methodrename">sfFilesystem::rename()</a></span><br>
+													<span class="method-name"><a href="../symfony/util/sfFilesystem.html#methodreplaceTokens">sfFilesystem::replaceTokens()</a></span><br>
+													<span class="method-name"><a href="../symfony/util/sfFilesystem.html#methodsymlink">sfFilesystem::symlink()</a></span><br>
+													<span class="method-name"><a href="../symfony/util/sfFilesystem.html#methodtouch">sfFilesystem::touch()</a></span><br>
+											</blockquote>
+										
+		</div>
+	</div>
+
+
+	<p class="notes" id="credit">
+		Documentation generated on Sun, 23 Jan 2011 04:12:51 +0200 by <a href="http://www.phpdoc.org" target="_blank">phpDocumentor 1.4.3</a>
+	</p>
+	</div></body>
+</html>

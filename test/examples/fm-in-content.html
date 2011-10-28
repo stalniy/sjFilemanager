@@ -1,0 +1,55 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Файловый менеджер на странице</title>
+    <meta http-equiv="imagetoolbar" content="no" />
+    <script type="text/javascript" src="../../web/js/lang/lang_ru.js"></script>
+    <script type="text/javascript" src="../../web/js/sjs/sjs.js"></script>
+    <script type="text/javascript" src="../../web/js/sjs/sjs.request.js"></script>
+    <script type="text/javascript" src="../../web/js/sjs/sjs.animate.js"></script>
+    <script type="text/javascript" src="../../web/js/filemaneger.js"></script>
+    <script type="text/javascript" src="../../web/js/windows.js"></script>
+    <script type="text/javascript" src="../../web/js/swfupload/handlers.js"></script>
+    <script type="text/javascript" src="../../web/js/swfupload/swfupload.js"></script>
+    <link href="../../web/css/sjfm.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        sjs.ready(function(){
+            sjWindow.renderView();
+            FileManage.i18n($_LANG);
+
+            var baseUrl = '../../web/';
+            sjs.query(baseUrl, {
+                tmpl: 'window',
+                show_actions: 1
+            }, function(js, html) {
+                if (js && js.response && js.response.status == 'error') {
+                    alert(js.response.msg);
+                    return false;
+                }
+                sjs('#container').html(html);
+
+                var fm = new FileManage(sjs('#sjFilemanager'), {
+                    actionUrl: baseUrl,
+                    rootUrl: '/uploads/sjFilemanager'
+                }, {
+                    ready: function() {
+                        this.setUploader(FileManage.getUploader(baseUrl))
+                    }
+                });
+                fm.actionsBlock.find('*[name="insert"]').remove();
+            }, 1);
+        })
+    </script>
+    <!-- @includer -->
+</head>
+
+<body>
+    <div style="margin:30px;">
+        <h3>Страница для манипуляции файлами</h3>
+        <div id="wrap" style="position:relative">
+            <div id="container" style="max-height: 500px; width: 900px;overflow:auto"></div>
+        </div>
+    </div>
+</body>
+</html>
