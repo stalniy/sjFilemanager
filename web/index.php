@@ -34,6 +34,10 @@ $_REQUEST['action']  = $action;
 $_SYSTEM['template'] = isset($_REQUEST['tmpl']) ? $_REQUEST['tmpl'] : '';
 
 try {
+    $_SYSTEM['i18n']->setHiddenStrings(array(
+        $sjConfig['base_dir'] => '*base*',
+        $sjConfig['root']     => '*root*'
+    ));
     if (!empty($_REQUEST['isMediaManager'])) {
         include $sjConfig['lib_dir'] . '/ctrl/mm-action.php';
     } elseif ($action) {

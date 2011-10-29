@@ -656,6 +656,13 @@ class sjI18n implements sjI18nInterface {
     protected $vocabulary;
 
     /**
+     * Hidden strings list
+     *
+     * @var array
+     */
+    protected $hiddenStrings = array();
+
+    /**
      * Constructor
      *
      * @param array $vocabulary
@@ -691,7 +698,20 @@ class sjI18n implements sjI18nInterface {
             $args[0] = $this->vocabulary[$args[0]];
         }
 
-        return call_user_func_array('sprintf', $args);
+        $string = call_user_func_array('sprintf', $args);
+        $string = strtr($string, $this->hiddenStrings);
+        return $string;
+    }
+
+    /**
+     * Set hidden strings replacements
+     *
+     * @param array $strings
+     * @return sjI18n
+     */
+    public function setHiddenStrings(array $strings) {
+        $this->hiddenStrings = $strings;
+        return $this;
     }
 }
 
@@ -1098,7 +1118,7 @@ class iFilemanager {
         if (!$filename && !$use_compress) {
             $first = current($this->files['name']);
             $filename = $first;
-        } else {
+        } elseif (!$filename) {
             $filename = $tmp_name;
         }
         $this->setHeaders($tmp_name, $filename);

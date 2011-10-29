@@ -59,5 +59,5 @@ $max_size = ini_get('post_max_size');
 $unit = strtoupper(substr($max_size, -1));
 $multiplier = ($unit == 'M' ? 1048576 : ($unit == 'K' ? 1024 : ($unit == 'G' ? 1073741824 : 1)));
 
-$sjConfig['uploader']['max_size'] = 1024 * 1024; #$multiplier * (float)$max_size;
+$sjConfig['uploader']['max_size'] = 500 * 1024; #$multiplier * (float)$max_size;
 $sjConfig['lib_dir']  = $sjConfig['base_dir'] . '/lib/php';

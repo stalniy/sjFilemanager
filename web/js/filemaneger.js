@@ -61,12 +61,12 @@ var FileManage = new sjs.plugin({
           i=Math.abs(i_to - i_from) + 1, from = (i_from > i_to) && i_from || i_to;
         while(i--) this.checked(body[from-i], 'selected', 1)
     },
-    choose:function(tr){
+    choose:function(tr, changeCheckboxState){
         if(tr.className){
-            this.checked(tr,'',0)
+            this.checked(tr,'', !changeCheckboxState)
         }else{
             this.lastSelected=tr;
-            this.checked(tr,'selected',1)
+            this.checked(tr,'selected', changeCheckboxState)
         }
         return this;
     },
@@ -74,7 +74,7 @@ var FileManage = new sjs.plugin({
         var checkbox = tr.firstChild.firstChild;
         tr.className=cls;
         if (sjs.nodeName(checkbox,'input')) {
-            checkbox.checked=chk
+            checkbox.checked=chk;
         }
         return this;
     },
@@ -161,34 +161,27 @@ var FileManage = new sjs.plugin({
     initialize:function(content){
         this.reset();
         content.unselectable().onEvent('mousedown',function(e){
-            var $this=sjs.event.caller(e), key=sjs.event.key(e), mn=sjs.globals.fm[this.sjsEventId], tr, actions, selected, dir;
-            while ($this && !sjs.nodeName($this,'td')) $this=$this.parentNode;
-            if(!sjs.nodeName($this,'td')) return false;
-
-            tr=$this.parentNode;
-            selected=mn.getChecked(tr.parentNode);
-
-            if(key.shift){
-                selected.iterate(function(){mn.checked(this,'',0)});
-                mn.checked(tr,'selected',1);
-                mn.select(tr)
-            }else if(key.ctrl){
-                mn.choose(tr)
-            }else{
-                mn.lastSelected=tr;
-                selected.iterate(function(){mn.checked(this,'',0)});
-                mn.checked(tr,'selected',1)
+            var $this=sjs.event.caller(e), key=sjs.event.key(e),
+                mn=sjs.globals.fm[this.sjsEventId], i = 5, that = $this;
+            while ($this && i-- && !(sjs.nodeName($this,'td') || sjs.nodeName($this,'th'))) {
+                $this=$this.parentNode;
             }
 
-            mn.hasStekChanges = true;
-            mn.prepareActions();
-            mn.notify('click', tr);
+            if (sjs.nodeName($this,'td')) {
+                mn.prepareContent($this, key, that)
+            } else if (sjs.nodeName($this,'th')) {
+                mn.prepareHeaders($this, key, that);
+                sjs.event.preventDefault(e);
+            } else {
+                return true;
+            }
+            mn.notify('click', $this.parentNode);
         }).onEvent('dblclick',function(e){
             var $this=sjs.event.caller(e), key=sjs.event.key(e), mn=sjs.globals.fm[this.sjsEventId],
-            tr, i = 10;
+                tr, i = 10, isCheckbox = sjs.nodeName($this, 'input');
             while($this && !sjs.nodeName($this, 'td') && i--) $this=$this.parentNode;
 
-            if (key.shift || key.ctrl || !sjs.nodeName($this,'td')) {
+            if (key.shift || key.ctrl || !sjs.nodeName($this,'td') || isCheckbox) {
                 return false;
             }
             tr = $this.parentNode;
@@ -224,6 +217,41 @@ var FileManage = new sjs.plugin({
 
         this.addStandardHandlers();
         this.displayFullPath(this.getCurrentPath());
+    },
+    prepareContent: function(td, key, eventTarget) {
+        var tr = td.parentNode, selected = this.getChecked(tr.parentNode),
+            mn = this, isCheckbox = eventTarget && eventTarget.type == 'checkbox';
+
+        if(key.shift){
+            selected.iterate(function(){mn.checked(this,'',0)});
+            this.checked(tr,'selected',1);
+            this.select(tr)
+        }else if(key.ctrl || isCheckbox){
+            this.choose(tr, !isCheckbox)
+        }else{
+            this.lastSelected=tr;
+            selected.iterate(function(){mn.checked(this,'',0)});
+            this.checked(tr,'selected',1)
+        }
+
+        this.hasStekChanges = true;
+        this.prepareActions();
+    },
+    prepareHeaders: function(th, key, eventTarget) {
+        var mn = this;
+        if (eventTarget && eventTarget.type == 'checkbox') {
+            var chk = eventTarget.checked;
+            sjs('tr', this.lastSelected.parentNode).iterate(function(){
+                if (sjs('label.parent-dir', this).length) {
+                    return true;
+                }
+                if (chk) {
+                    mn.checked(this, '', 0);
+                } else {
+                    mn.checked(this, 'selected', 1);
+                }
+            });
+        }
     },
     setRowTemplate: function (template) {
         if (!template) {
@@ -288,6 +316,7 @@ var FileManage = new sjs.plugin({
         }
         if (!sjs.isFn(this.events.displayPath)) {
             this.addListener('displayPath', function(path) {
+                var fullPath = path;
                 path = (path || '/').replace(/\/+$/, '').split('/');
 
                 var rootName = FileManage.i18n('root'), wrap = sjs('#sjPath'),
@@ -295,7 +324,8 @@ var FileManage = new sjs.plugin({
                     lastElement = (path[i] || rootName), activeElement = null;
 
                 wrap.find('a').each(function() {
-                    if (sjs(this).html() == lastElement) {
+                    var p = this.href.substr(this.href.lastIndexOf('#') + 1);
+                    if (p == fullPath) {
                         activeElement = this;
                         return false;
                     }
@@ -303,14 +333,20 @@ var FileManage = new sjs.plugin({
                 if (!activeElement) {
                     while (++k < i) {
                         tmp += (path[k] || '') + '/';
-                        html[html.length] = '<a href="#' + tmp + '">'
-                            + (path[k] || rootName)
+                        html[html.length] = '<a href="#' + sjs.htmlChars(tmp) + '">'
+                            + sjs.htmlChars(path[k] || rootName)
                             + '</a>';
                     }
-                    html[html.length] = '<a href="#' + tmp + (path[k] || '/') + '" class="act">'
-                        + (path[k] || rootName)
+                    html[html.length] = '<a href="#' + sjs.htmlChars(tmp + (path[k] || '/')) + '" class="act">'
+                        + sjs.htmlChars(path[k] || rootName)
                         + '</a>';
-                    wrap.html(html.join("&gt;"));
+
+                    wrap.html('<span>&nbsp;</span>').append('<div />');
+                    // fix for chrome innerHTML bug
+                    setTimeout(function(){
+                        wrap.first().remove();
+                        wrap.first().html(html.join("&gt;"))
+                    }, 10);
                 } else {
                     wrap.find('a.act').removeClass('act');
                     sjs(activeElement).setClass('act');
@@ -336,7 +372,7 @@ var FileManage = new sjs.plugin({
             && (
                  has_dirs  && !has_files && !a.hasClass('onlyFile')
               || has_files && !has_dirs  && !a.hasClass('onlyDir')
-              || has_files && has_dirs   && (!a.hasClass('onlyDir') || !hasClass('onlyFile'))
+              || has_files && has_dirs   && !a.hasClass('onlyDir') && !a.hasClass('onlyFile')
               || !a.hasClass('sjsFMdinamic')
               || this.requestData.files
             );
@@ -351,6 +387,7 @@ var FileManage = new sjs.plugin({
         var args = Array.prototype.slice.call(arguments,1);
         this.notify(name, args);
         this[name + 'Action'].apply(this, args || []);
+        return this;
     },
     setAction: function(name, callback){
         this[name + 'Action'] = callback;
@@ -474,8 +511,8 @@ var FileManage = new sjs.plugin({
             p = stek[0].length;
         }
         this.getContent().selectable();
-        var inp = sjs('label', td)
-            .html('<input type="text" name="sjsFMnewName" value="'+stek[0]+'" title="'+stek[0]+'" />')
+        var fName = sjs.htmlChars(stek[0]), inp = sjs('label', td)
+            .html('<input type="text" name="sjsFMnewName" value="' + fName + '" title="' + fName + '" />')
             .first();
         sjs.selectText(inp[0], 0, p);
         inp[0].focus();
@@ -582,11 +619,10 @@ var FileManage = new sjs.plugin({
             mn.uploader.setPostParams(postParams);
         }
     },
-    onUploadSuccess: function(){
-        var mn = this.getFileManager();
-
-        if (mn) {
-            mn.doAction('refresh');
+    onUploadSuccess: function(file, serverData){
+        if (!serverData) {
+            var w = this.doAction('refresh').getWindow('upload');
+            (function(){ w.close() }).delay(.9)
         }
     },
     getWindow: function(name, title) {
@@ -799,7 +835,7 @@ FileManage.renameCallback = function(e){
         }
 
         sjs(td).attr('colSpan', 1).next().css('display', '');
-        sjs(this.parentNode).html(filename);
+        sjs(this.parentNode).html(sjs.htmlChars(filename));
         return false;
     }
     mn.actionsBlock.find('img').removeClass('unvisible');
@@ -1055,7 +1091,10 @@ FileManage.getUploader = function(base_url, cfg){
         upload_error_handler: uploadError,
         upload_success_handler: function(file, serverData) {
             uploadSuccess.call(this, file, serverData);
-            FileManage.prototype.onUploadSuccess.call(this);
+            var mn = this.getFileManager();
+            if (mn) {
+                mn.onUploadSuccess(file, serverData);
+            }
         }
     }, cfg || {}));
 };

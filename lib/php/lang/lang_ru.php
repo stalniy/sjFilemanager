@@ -85,7 +85,7 @@ $_SYSTEM['lang'] = array(
     'Can not move files if destination or files array is empty' => 'Не возможно переместить файлы если имя папки или массив файлов пусты',
     'The folder "%s" does not writable' => 'Нет прав на запись в папку',
     'Uploaded files size greater then "%s"' => 'Загружаемый объем файла больше чем "%s"',
-    'Size of "%s" <= 0' => 'Объем "%s" <= 0',
+    'Size of "%s" <= 0' => 'Объем файла "%s" <= 0',
     'Files with extension "%s" does not allowed' => 'Файлы с рассширинием "%s" запрещены',
     'Can not copy file "%s" to destination "%s"' => 'Не возможно скопировать файл "%s" в "%s"',
     'class ZipArchive does not exists' => 'Не возможно заархивировать файлы, так как PHP класс ZipArchive не существует',
@@ -97,6 +97,7 @@ $_SYSTEM['lang'] = array(
     'Template "%s" is not readable or not exists'  => 'Шаблон "%s" не читабельный или не существует',
     'Unable to override. File is not writable' => 'Нет прав на перезапись файла',
     'Unable to create folder. Folder with this name already exists' => 'Невозможно создать каталог. Каталог с таким именем уже существует',
-    'Permissions denied' => 'Нет прав на чтение'
+    'Permissions denied' => 'Нет прав на чтение',
+    'File name can not contains following symmbols: \/:*?<>|"\'' => 'Имя файла не должно содержать таких символов: \/:*?<>|"\''
 );
 ?>

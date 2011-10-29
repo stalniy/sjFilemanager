@@ -75,7 +75,7 @@ try {
                 $fm->import($path);
             }
 
-            $fm->send();
+            $fm->send('files.zip');
             $_SYSTEM['jsRequest']->reset();
         break;
         case 'perms':
@@ -118,6 +118,11 @@ try {
             }
 
             $dirname = trim($_REQUEST['dirname']);
+
+            if (preg_match('/[\/:*?<>|\'"]+/', $dirname)) {
+                throw new sjException($_SYSTEM['i18n']->__('File name can not contains following symmbols: \/:*?<>|"\''));
+            }
+
             if (is_dir($path . $dirname)) {
                 throw new sjException($_SYSTEM['i18n']->__('Unable to create folder. Folder with this name already exists'));
             }

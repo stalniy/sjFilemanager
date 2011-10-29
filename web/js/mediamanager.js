@@ -472,12 +472,12 @@ var MediaManager = new sjs.plugin({
             ext  = name.substr(name.lastIndexOf('.') + 1).toLowerCase();
 
         if (ext == 'jpg' || ext == 'jpeg' || ext == 'gif' || ext == 'png') {
-            html += '<img src="' + name + '?' + (+new Date) + '" />';
+            html += '<img src="' + sjs.htmlChars(name) + '?' + (+new Date) + '" />';
             this.currentFileType = 'image';
         } else if (ext == 'swf') {
             html = '<object align="middle" codebase="http://fpdownload.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=8,0,0,0" >';
             html += '    <param value="opaque" name="wmode"/>';
-            html += '    <param value="' + name + '" name="movie"/>';
+            html += '    <param value="' + sjs.htmlChars(name) + '" name="movie"/>';
             html += '    <param value="always" name="AllowScriptAccess"/>';
             html += '    <param value="high" name="quality"/>';
             html += '    <embed align="middle" ';

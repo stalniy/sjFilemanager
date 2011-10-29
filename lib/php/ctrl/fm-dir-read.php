@@ -46,9 +46,9 @@ try {
             $extension = !$is_dir && isset($info['extension']) ? $info['extension'] : '';
         }
         $data[] = array(
-            'basename' => $info['basename'],
-            'name'  => $filename,
-            'path'  => $file,
+            'basename' => htmlentities($info['basename'], 2, $sjConfig['charset']),
+            'name'  => htmlentities($filename, 2, $sjConfig['charset']),
+            'path'  => htmlentities($file, 2, $sjConfig['charset']),
             'size'  => $is_dir ? '' : $fs->formatSize($file) . 'b',
             'modify'=> $fs->formatDate(filemtime($file)),
             'type'  => $extension,
@@ -60,13 +60,13 @@ try {
     if (!$_SYSTEM['is_ajax'] || $show_actions) {
         $file_actions = array(
             array('refresh',  '',                         $_SYSTEM['lang']['REFRESH']),
+            array('createDir', '',                        $_SYSTEM['lang']['CREATE_DIR']),
             array('cut',     'onlyFile sjsFMdinamic',     $_SYSTEM['lang']['CUT']),
             array('copy',    'onlyFile sjsFMdinamic',     $_SYSTEM['lang']['COPY']),
             array('remove',  'sjsFMdinamic',              $_SYSTEM['lang']['REMOVE']),
             array('paste',   'sjsFMdisabled sjsFMdinamic',$_SYSTEM['lang']['PASTE']),
             array('rename',  'sjsFMdinamic',              $_SYSTEM['lang']['RENAME']),
             array('perms',   'sjsFMdinamic',              $_SYSTEM['lang']['PERMS']),
-            array('createDir', '',                        $_SYSTEM['lang']['CREATE_DIR']),
             array('upload',    '',                        $_SYSTEM['lang']['UPLOAD']),
             array('download',  'sjsFMdisable',            $_SYSTEM['lang']['DOWNLOAD']),
             array('dirInfo',   '',                        $_SYSTEM['lang']['DIR_INFO']),
@@ -93,7 +93,7 @@ try {
 
     $view->setI18n($_SYSTEM['i18n'])->render(array(
         'file_actions' => $file_actions,
-        'cur_dir'      => $cur_dir,
+        'cur_dir'      => htmlentities($cur_dir, 2, $sjConfig['charset']),
         'source'       => $data,
         'lang'         => $_SYSTEM['lang'],
         'base_host'    => 'http://' . $_SERVER['HTTP_HOST']

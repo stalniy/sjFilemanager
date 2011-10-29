@@ -30,7 +30,7 @@ FileProgress.prototype={
         childs[3].lastChild.style.width = "0%";
         childs=null;
 
-        this.appear()
+        //this.appear()
     },
     setProgress:function(percent){
         var bar=this.element.childNodes[3];

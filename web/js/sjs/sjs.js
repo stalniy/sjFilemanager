@@ -1465,13 +1465,12 @@ sjs.extend({
     space:function(s){
         return sjs.trim(s.replace(sjs.exp.More2SpaceGlobal,' '))
     },
-    htmlChars:function(str){
-        var chars={'<':'&lt;','>':'&gt;','"':'&quot;',"&":'&amp;'};
-        str=str.replace(/[<>"&]/g,function(m){
-            return chars[m]
-        });
-        chars=null;
-        return str
+    htmlChars:function(s){
+        var div = sjs.wrapper, txt = document.createTextNode(s);
+        div.appendChild(txt);
+        s = div.innerHTML;
+        div.innerHTML = '';
+        return s
     },
     detectStyle:function(type){
         if(!type) return false;

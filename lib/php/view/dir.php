@@ -10,7 +10,7 @@
 <table class="sjs_table filelist">
     <thead>
         <tr class="head">
-            <th class="tcenter width40 padding-left-0">&nbsp;</th>
+            <th class="tcenter width40 padding-left-0"><input type="checkbox" /></th>
             <th class="list-current"><a href="#" class="sort by-name"><?php echo $lang['FILENAME'] ?></a></th>
             <th class="width70"><a href="#" class="sort by-type"><?php echo $lang['TYPE'] ?></a></th>
             <th><a href="#" class="sort by-size"><?php echo $lang['SIZE'] ?></a></th>
@@ -31,7 +31,7 @@
     <?php foreach ($source as &$info): ?>
     <tr>
         <td class="tcenter padding-left-0 width40"><input type="checkbox" name="files[]" value="<?php echo $info['basename'] ?>" /></td>
-        <?php if (is_dir($info['path'])): ?>
+        <?php if ($info['is_dir']): ?>
         <td class="dir list-current"><label class="folder"><?php echo $info['name'] ?></label></td>
         <td class="width70"><?php echo $lang['DIR'] ?></td>
         <?php else: ?>

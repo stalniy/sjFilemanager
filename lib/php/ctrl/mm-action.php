@@ -42,8 +42,8 @@ $_RESULT['media'] = array();
 
 $width  = $_REQUEST['width'];
 $height = $_REQUEST['height'];
-$left   = $_REQUEST['left'];
-$top    = $_REQUEST['top'];
+$left   = isset($_REQUEST['left']) ? $_REQUEST['left'] : 0;
+$top    = isset($_REQUEST['top'])  ? $_REQUEST['top']  : 0;
 
 $overrideOld = !empty($_REQUEST['override']);
 $action      = $_REQUEST['action'];
@@ -74,7 +74,7 @@ try {
     }
     $_RESULT['response']['status'] = 'success';
 } catch (Exception $e) {
-	$_RESULT['response']['status'] = 'error';
+    $_RESULT['response']['status'] = 'error';
     $_RESULT['response']['msg']    = $fs->getI18n()->__($e->getMessage());
 }
 ?>

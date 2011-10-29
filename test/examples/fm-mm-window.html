@@ -33,7 +33,9 @@
                 resizable: true
             }).attachListeners({
                 ready: function() {
-                    this.setUploader(FileManage.getUploader(baseUrl));
+                    this.setUploader(FileManage.getUploader(baseUrl,{
+                        file_size_limit: '500KB'
+                    }));
                     MediaManager.getInstance(sjs('#sjMediamanager').insertBefore('#sjWrapper').find('.sjMediaWrapper'), {
                         panel: '.sjMediaPanel',
                         lazy: true,

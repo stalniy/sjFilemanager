@@ -143,7 +143,7 @@ html, body, body a, body input, a:active, a:focus, button {
 }
 
 .sjs_table .tbl_bg {background-color:#f2f4f0}
-.sjs_table .padding-left-0 {padding-left:0px}
+.sjs_table .padding-left-0 {padding-left:0px !important}
 .head .cfg {width:30px}
 
 /* WIDTH */
@@ -161,6 +161,10 @@ html, body, body a, body input, a:active, a:focus, button {
 .filelist, .filelist td {
     border: 0;
     font-size:11px;
+}
+
+.filelist th.tcenter {
+    padding:1px 4px 1px 8px;
 }
 
 .filelist th {
@@ -317,10 +321,9 @@ html, body, body a, body input, a:active, a:focus, button {
     position:absolute;
     padding-left:5px;
     width:36px;
-    bottom:2px;
+    bottom:24px;
     z-index:400;
 }
-.filemanagerfixed #sjFmPath {display:none}
 .filelist .loading {background:url(../img/load.gif) no-repeat 0 2px !important}
 .filelist label.parent-dir {background:url(../img/folder-parent.gif) no-repeat 0 3px}
 
@@ -760,16 +763,18 @@ a.progressCancel:hover {
     padding: 3px 1px 3px 20px;
     position: absolute;
     right: 18px; top: 30px;
-    width: 20%; min-height: 50px; _height: 50px;
+    min-width: 20%; max-width: 80%;
+    min-height: 50px;
+    _height: 50px; _width:300px;
     z-index:200;
 }
 
 #sjPath {
     z-index:50;
     position: absolute;
-    bottom: 2px; left: 49px;
+    bottom: 2px; left: 2px;
     height: 12px; line-height: 11px;
-    _width: 50%; min-width: 50%;
+    _width: 90%; min-width: 90%;
     background-color:#fff;
     padding: 4px 8px;
     font-size: 9px;
