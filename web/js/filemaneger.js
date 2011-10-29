@@ -620,7 +620,7 @@ var FileManage = new sjs.plugin({
         }
     },
     onUploadSuccess: function(file, serverData){
-        if (!serverData) {
+        if (!this.uploader.hasErrors && this.uploader.getStats().files_queued == 0) {
             var w = this.doAction('refresh').getWindow('upload');
             (function(){ w.close() }).delay(.9)
         }
@@ -1090,6 +1090,9 @@ FileManage.getUploader = function(base_url, cfg){
         upload_progress_handler: uploadProgress,
         upload_error_handler: uploadError,
         upload_success_handler: function(file, serverData) {
+            if (serverData) {
+                this.hasErrors = true;
+            }
             uploadSuccess.call(this, file, serverData);
             var mn = this.getFileManager();
             if (mn) {
