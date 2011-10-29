@@ -100,7 +100,7 @@ var FileManage = new sjs.plugin({
         this.fileStek=files;
         this.dirStek=dirs;
         this.hasStekChanges = false;
-        dirs=files=null
+        dirs=files=null;
         return this;
     },
     getFiles: function() {
@@ -292,7 +292,7 @@ var FileManage = new sjs.plugin({
         template.find('td label')
             .setClass(lblClass)
         .parent()
-            .setClass(tdClass)
+            .setClass(tdClass);
 
         return template;
     },
@@ -955,6 +955,12 @@ FileManage.bare = {
         FileManage.windowInstance.show().position();
         FileManage.instance.reset();
         return this;
+    },
+    getManager: function() {
+        return FileManage.instance;
+    },
+    getWindow: function() {
+        return FileManage.windowInstance;
     }
 };
 
@@ -983,11 +989,7 @@ FileManage.i18n = function(data) {
 };
 
 FileManage.getInstance = function(callback, url, fmCfg, windowCfg) {
-    if (callback === null) {
-        if (FileManage.instance) {
-            FileManage.instance.__destruct();
-            FileManage.windowInstance.__destruct();
-        }
+    if (!FileManage.instance && callback === null) {
         FileManage.bare.cfg = [url, fmCfg, windowCfg];
         return FileManage.bare;
     }
@@ -1100,4 +1102,46 @@ FileManage.getUploader = function(base_url, cfg){
             }
         }
     }, cfg || {}));
+};
+
+FileManage.createAndAttachMedia = function(baseUrl, rootUrl, translations) {
+    sjWindow.renderView();
+    MediaManager.renderView(translations);
+    this.i18n(translations);
+
+    var w = FileManage.getInstance(null, baseUrl + "?tmpl=window&show_actions=1", {
+        actionUrl: baseUrl,
+        rootUrl: rootUrl
+    },{
+        move: true,
+        resizable: true
+    }).attachListeners({
+        ready: function() {
+            var fm = this;
+            this.setUploader(FileManage.getUploader(baseUrl));
+            MediaManager.getInstance(sjs('#sjMediamanager').insertBefore('#sjWrapper').find('.sjMediaWrapper'), {
+                panel: '.sjMediaPanel',
+                lazy: true,
+                saveUrl: baseUrl
+            }).syncWithFileManager(fm, 'refresh').addListener('serverOk', function(js, html){
+                this.unsFiles(js.media.rm);
+                this.addFiles(js.media.add);
+
+                this.gotoFile(this.files.length - js.media.add.length);
+                fm.doAction('refresh');
+            });
+        },
+        click: function() {
+            var mm = MediaManager.getInstance(), files;
+            this.makeStek();
+            if (!mm.isSleepy && (files = this.getFiles())) {
+                mm.setFiles(files).showFile();
+            }
+        },
+        dblclick: function(tr) {
+            if (!sjs('td.dir', tr).length) {
+                this.doAction('insert');
+            }
+        }
+    });
 };

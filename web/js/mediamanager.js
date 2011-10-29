@@ -989,6 +989,7 @@ var MediaManager = new sjs.plugin({
                 }
             }
         });
+        return this;
     }
 });
 

@@ -1,102 +1,102 @@
 sjs.globals.drag={};
 
 sjs.startDrag=function(obj,cfg){
-	sjs.event.unselect(document.documentElement);
-	cfg=cfg||{};
-	cfg._x=cfg._x||0; cfg._y=cfg._y||0;
-	cfg.target=obj;
-	//if(!obj.sjsEventId) obj.sjsEventId=++sjs.count;
+    sjs.event.unselect(document.documentElement);
+    cfg=cfg||{};
+    cfg._x=cfg._x||0; cfg._y=cfg._y||0;
+    cfg.target=obj;
+    //if(!obj.sjsEventId) obj.sjsEventId=++sjs.count;
     if (cfg.onMove && !sjs.isFn(cfg.onMove)) {
         cfg.onMove = false;
     }
-	sjs.globals.drag[obj.sjsEventId]=cfg;
-	sjs(document).on('mousemove').add(sjs.ui.move[cfg.type],obj.sjsEventId);
-	cfg=null;
-	return obj.sjsEventId
+    sjs.globals.drag[obj.sjsEventId]=cfg;
+    sjs(document).on('mousemove').add(sjs.ui.move[cfg.type],obj.sjsEventId);
+    cfg=null;
+    return obj.sjsEventId
 };
 sjs.stopDrag=function(e,id){
-	var cfg=sjs.globals.drag[id];
-	if(!cfg) return false;
-	sjs.event.select(document.documentElement);
-	if(sjs.isFn(cfg.onDragEnd)) cfg.onDragEnd.call(cfg.target,cfg,id,e);
-	delete sjs.globals.drag[id];
-	sjs(document).dettach('mousemove',sjs.ui.move[cfg.type]);
-	cfg=cfg.target=null;
-	return true
+    var cfg=sjs.globals.drag[id];
+    if(!cfg) return false;
+    sjs.event.select(document.documentElement);
+    if(sjs.isFn(cfg.onDragEnd)) cfg.onDragEnd.call(cfg.target,cfg,id,e);
+    delete sjs.globals.drag[id];
+    sjs(document).dettach('mousemove',sjs.ui.move[cfg.type]);
+    cfg=cfg.target=null;
+    return true
 };
 sjs.stopDragAll=function(e){
-	for(var id in sjs.globals.drag) sjs.stopDrag(e,id)
+    for(var id in sjs.globals.drag) sjs.stopDrag(e,id)
 };
 
 sjs.ui.move={
-	'undefined':function(e,id){
-		var xy=sjs.event.xy(e), cfg=sjs.globals.drag[id];
-		cfg.target.style.top=xy.y-cfg._y+'px';
-		cfg.target.style.left=xy.x-cfg._x+'px';
+    'undefined':function(e,id){
+        var xy=sjs.event.xy(e), cfg=sjs.globals.drag[id];
+        cfg.target.style.top=xy.y-cfg._y+'px';
+        cfg.target.style.left=xy.x-cfg._x+'px';
 
         if (cfg.onMove) {
             cfg.onMove.call(cfg.target, xy.x-cfg._x, xy.y-cfg._y, cfg);
         }
-		sjs.event.preventDefault(e);
-	},
-	horizontal:function(e,id){
-		var xy=sjs.event.xy(e), cfg=sjs.globals.drag[id];
-		cfg.target.style.left=xy.x-cfg._x+'px';
+        sjs.event.preventDefault(e);
+    },
+    horizontal:function(e,id){
+        var xy=sjs.event.xy(e), cfg=sjs.globals.drag[id];
+        cfg.target.style.left=xy.x-cfg._x+'px';
         if (cfg.onMove) {
             cfg.onMove.call(cfg.target, xy.x-cfg._x, null, cfg);
         }
-		sjs.event.preventDefault(e);
-	},
-	vertical:function(e,id){
-		var xy=sjs.event.xy(e), cfg=sjs.globals.drag[id];
-		cfg.target.style.top=xy.y-cfg._y+'px';
+        sjs.event.preventDefault(e);
+    },
+    vertical:function(e,id){
+        var xy=sjs.event.xy(e), cfg=sjs.globals.drag[id];
+        cfg.target.style.top=xy.y-cfg._y+'px';
         if (cfg.onMove) {
             cfg.onMove.call(cfg.target, null, xy.y-cfg._y, cfg);
         }
-		sjs.event.preventDefault(e);
-	},
-	grid:function(e,id){
-		var xy=sjs.event.xy(e),cfg=sjs.globals.drag[id], drag=cfg.target,
+        sjs.event.preventDefault(e);
+    },
+    grid:function(e,id){
+        var xy=sjs.event.xy(e),cfg=sjs.globals.drag[id], drag=cfg.target,
             y=xy.y-cfg._y, x=xy.x-cfg._x, posX = null, posY = null,
             where=null;
-		if(Math.abs(x-drag.offsetLeft)>=cfg.gridX){
-			where=(x<drag.offsetLeft)?-cfg.gridX:cfg.gridX;
-			drag.style.left=drag.offsetLeft+where+'px'
+        if(Math.abs(x-drag.offsetLeft)>=cfg.gridX){
+            where=(x<drag.offsetLeft)?-cfg.gridX:cfg.gridX;
+            drag.style.left=drag.offsetLeft+where+'px'
             posX = drag.offsetLeft+where;
-		}
-		if(Math.abs(y-drag.offsetTop)>=cfg.gridY){
-			where=(y<drag.offsetTop)?-cfg.gridY:cfg.gridY;
-			drag.style.top=drag.offsetTop+where+'px'
+        }
+        if(Math.abs(y-drag.offsetTop)>=cfg.gridY){
+            where=(y<drag.offsetTop)?-cfg.gridY:cfg.gridY;
+            drag.style.top=drag.offsetTop+where+'px'
             posY = drag.offsetTop+where;
-		}
+        }
         if (cfg.onMove) {
             cfg.onMove.call(cfg.target, posX, posY, cfg);
         }
-		sjs.event.preventDefault(e);
-	},
-	bounds:function(e,id){
-		var xy=sjs.event.xy(e), cfg=sjs.globals.drag[id], drag=cfg.target, y=xy.y-cfg._y, x=xy.x-cfg._x;
-		if(x<=cfg.left) x=cfg.left;
-		else if(x+drag.offsetWidth>=cfg.right) x=cfg.right-drag.offsetWidth;
-		if(y<=cfg.top) y=cfg.top;
-		else if(y+drag.offsetHeight>=cfg.bottom) y=cfg.bottom-drag.offsetHeight;
-		drag.style.left=x+'px';
-		drag.style.top=y+'px';
+        sjs.event.preventDefault(e);
+    },
+    bounds:function(e,id){
+        var xy=sjs.event.xy(e), cfg=sjs.globals.drag[id], drag=cfg.target, y=xy.y-cfg._y, x=xy.x-cfg._x;
+        if(x<=cfg.left) x=cfg.left;
+        else if(x+drag.offsetWidth>=cfg.right) x=cfg.right-drag.offsetWidth;
+        if(y<=cfg.top) y=cfg.top;
+        else if(y+drag.offsetHeight>=cfg.bottom) y=cfg.bottom-drag.offsetHeight;
+        drag.style.left=x+'px';
+        drag.style.top=y+'px';
         if (cfg.onMove) {
             cfg.onMove.call(cfg.target, x, y, cfg);
         }
         sjs.event.preventDefault(e);
     },
-	offsetBounds:function(e,id){
-		var xy = sjs.event.xy(e), cfg = sjs.globals.drag[id], drag = cfg.target,
+    offsetBounds:function(e,id){
+        var xy = sjs.event.xy(e), cfg = sjs.globals.drag[id], drag = cfg.target,
             y = xy.y - cfg._y, x = xy.x - cfg._x,
             p = drag.parentNode;
-		if (x <= cfg.left - p.offsetLeft) {
+        if (x <= cfg.left - p.offsetLeft) {
             x = cfg.left - p.offsetLeft;
         } else if (x + drag.offsetWidth >= cfg.right - p.offsetLeft) {
             x = cfg.right - drag.offsetWidth - p.offsetLeft;
         }
-		if (y <= cfg.top-p.offsetTop) {
+        if (y <= cfg.top-p.offsetTop) {
             y = cfg.top - p.offsetTop;
         } else if (y + drag.offsetHeight >= cfg.bottom - p.offsetTop) {
             y = cfg.bottom - drag.offsetHeight - p.offsetTop;
@@ -107,9 +107,9 @@ sjs.ui.move={
             cfg.onMove.call(cfg.target, x, y, cfg);
         }
         sjs.event.preventDefault(e);
-	},
+    },
     parentOffset: function(e, id) { // cfg.target.offsetParent == cfg.target.parentNode
-		var xy = sjs.event.xy(e), cfg = sjs.globals.drag[id], drag = cfg.target,
+        var xy = sjs.event.xy(e), cfg = sjs.globals.drag[id], drag = cfg.target,
             y = xy.y - cfg._y, x = xy.x - cfg._x,
             p = drag.parentNode;
 
@@ -124,8 +124,8 @@ sjs.ui.move={
         } else if (y + drag.offsetHeight >= p.offsetHeight) {
             y = p.offsetHeight - drag.offsetHeight;
         }
-		drag.style.left = x + 'px';
-		drag.style.top  = y + 'px';
+        drag.style.left = x + 'px';
+        drag.style.top  = y + 'px';
         if (cfg.onMove) {
             cfg.onMove.call(cfg.target, x, y, cfg);
         }
@@ -155,25 +155,25 @@ sjs.startResize = function(obj, cfg) {
     if (cfg.onResize && !sjs.isFn(cfg.onResize)) {
         cfg.onResize = false;
     }
-	sjs(document).on('mousemove').add(sjs.ui.resize[cfg.r.fn], resizeId);
+    sjs(document).on('mousemove').add(sjs.ui.resize[cfg.r.fn], resizeId);
     sjs.event.unselect(document.documentElement);
-	sjs.globals.resize[resizeId]=cfg;
-	return resizeId;
+    sjs.globals.resize[resizeId]=cfg;
+    return resizeId;
 };
 
 sjs.stopResize=function(e, id){
-	var cfg=sjs.globals.resize[id];
-	if (!cfg) {
+    var cfg=sjs.globals.resize[id];
+    if (!cfg) {
         return false;
     }
-	sjs.event.select(document.documentElement);
-	if (sjs.isFn(cfg.onResizeEnd)) {
+    sjs.event.select(document.documentElement);
+    if (sjs.isFn(cfg.onResizeEnd)) {
         cfg.onResizeEnd.call(cfg.r.target, cfg, id, e);
     }
-	sjs(document).dettach('mousemove', sjs.ui.resize[cfg.r.fn]);
+    sjs(document).dettach('mousemove', sjs.ui.resize[cfg.r.fn]);
     sjs.globals.resize[id] = null;
-	delete sjs.globals.resize[id];
-	return true
+    delete sjs.globals.resize[id];
+    return true
 };
 
 sjs.ui.resize={
@@ -217,7 +217,7 @@ sjs.ui.resize={
                 cfg.r.y=obj.offsetHeight+obj.offsetTop;
                 cfg.r.oY=-1;
                 cfg.r.fn='resizeHeight';
-                this._setPos(obj, 'bottom', 'clientHeight', obj.offsetHeight + obj.offsetTop, 'Top')
+                this._setPos(obj, 'bottom', 'clientHeight', obj.offsetHeight + obj.offsetTop, 'Top');
                 obj.style.top='auto';
             break;
             case 's':
@@ -234,7 +234,7 @@ sjs.ui.resize={
                 cfg.r.x=obj.offsetWidth+obj.offsetLeft;
                 cfg.r.oX=-1;
                 cfg.r.fn=(cfg.r.oY) ? 'resize' : 'resizeWidth';
-                this._setPos(obj, 'right', 'clientWidth', obj.offsetWidth + obj.offsetLeft, 'Left')
+                this._setPos(obj, 'right', 'clientWidth', obj.offsetWidth + obj.offsetLeft, 'Left');
                 obj.style.left='auto';
             break;
             case 'e':
@@ -302,18 +302,18 @@ sjs.ui.resize={
         e.style.height = h + 'px';
         return h;
     },
-	resizeHeight:function(e,id){
-		var xy=sjs.event.xy(e), cfg=sjs.globals.resize[id],
+    resizeHeight:function(e,id){
+        var xy=sjs.event.xy(e), cfg=sjs.globals.resize[id],
             h = (xy.y - cfg.r.y) * cfg.r.oY;
 
         h = sjs.ui.resize._setHeight(h, cfg);
-		sjs.event.preventDefault(e);
+        sjs.event.preventDefault(e);
         if (cfg.onResize) {
             cfg.onResize.call(cfg.r.target, null, h, cfg)
         }
-	},
-	resizeWidth:function(e,id){
-		var xy = sjs.event.xy(e), cfg = sjs.globals.resize[id],
+    },
+    resizeWidth:function(e,id){
+        var xy = sjs.event.xy(e), cfg = sjs.globals.resize[id],
             w = (xy.x - cfg.r.x) * cfg.r.oX;
 
         w = sjs.ui.resize._setWidth(w, cfg);
@@ -321,9 +321,9 @@ sjs.ui.resize={
         if (cfg.onResize) {
             cfg.onResize.call(cfg.r.target, w, null, cfg)
         }
-	},
-	resize:function(e,id){
-		var xy=sjs.event.xy(e), cfg=sjs.globals.resize[id],
+    },
+    resize:function(e,id){
+        var xy=sjs.event.xy(e), cfg=sjs.globals.resize[id],
             w = 0, h = (xy.y - cfg.r.y) * cfg.r.oY;
 
         h = sjs.ui.resize._setHeight(h, cfg);
@@ -333,11 +333,11 @@ sjs.ui.resize={
             w = (xy.x - cfg.r.x) * cfg.r.oX
         }
         w = sjs.ui.resize._setWidth(w, cfg);
-		sjs.event.preventDefault(e);
+        sjs.event.preventDefault(e);
         if (cfg.onResize) {
             cfg.onResize.call(cfg.r.target, w, h, cfg)
         }
-	},
+    },
     selection: function(e,id) {
         var xy=sjs.event.xy(e), cfg=sjs.globals.resize[id],
             x = (xy.x-cfg.r.x)*cfg.r.oX, y = (xy.y - cfg.r.y) * cfg.r.oY,

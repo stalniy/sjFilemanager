@@ -19,37 +19,7 @@
     <script type="text/javascript" src="/weCmsPlugin/js/tiny_mce/tiny_mce.js"></script>
     <script type="text/javascript">
         sjs.ready(function(){
-            sjWindow.renderView();
-            MediaManager.renderView($_LANG);
-            FileManage.i18n($_LANG);
-
-            var baseUrl = '../../web/';
-
-            var w = FileManage.getInstance(null, baseUrl + "?tmpl=window&show_actions=1", {
-                actionUrl: baseUrl,
-                rootUrl: '/uploads/sjFilemanager'
-            },{
-                move: true,
-                resizable: true
-            }).attachListeners({
-                ready: function() {
-                    this.setUploader(FileManage.getUploader(baseUrl,{
-                        file_size_limit: '500KB'
-                    }));
-                    MediaManager.getInstance(sjs('#sjMediamanager').insertBefore('#sjWrapper').find('.sjMediaWrapper'), {
-                        panel: '.sjMediaPanel',
-                        lazy: true,
-                        saveUrl: baseUrl
-                    }).syncWithFileManager(this, 'refresh');
-                },
-                click: function() {
-                    var mm = MediaManager.getInstance(), files;
-                    this.makeStek();
-                    if (!mm.isSleepy && (files = this.getFiles())) {
-                        mm.setFiles(files).showFile();
-                    }
-                }
-            });
+            FileManage.createAndAttachMedia('../../web/', '/uploads/sjFilemanager', $_LANG);
 
             sjs('#container').onEvent('click', function(e){
                 var $this = sjs.event.caller(e);
