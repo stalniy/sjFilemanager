@@ -542,7 +542,7 @@ class iFilesystem extends sfFilesystem implements sjFilesystem {
      */
     public function formatSize($file) {
         if (!is_readable($file)) {
-            throw new sjException($this->getI18n()->__('Permissions denied', $path));
+            throw new sjException($this->getI18n()->__('Permissions denied', $file));
         }
 
         $size = is_dir($file) ? $this->dirsize($file) : filesize($file);
