@@ -56,7 +56,7 @@ $_SYSTEM['lang'] = array(
     'UPLOAD'     => 'Загрузить',
     'DOWNLOAD'   => 'Сохранить',
     'DIR_INFO'   => 'Информация (stat)',
-    'TRANSFORM'  => 'Фикcацыя панели',
+    'TRANSFORM'  => 'Фикcация панели',
 
     'READ'  => 'Чтение',
     'WRITE' => 'Запись',
