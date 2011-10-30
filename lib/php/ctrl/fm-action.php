@@ -135,6 +135,13 @@ try {
             }
 
             $newFileName = $fs->prepareFilename(reset($_REQUEST['fileNames']));
+            $newFileExt  = $fs->getPathInfo($newFileName, PATHINFO_EXTENSION);
+            if (!empty($sjConfig['uploader']['allowed_types'])
+                && !in_array($newFileExt, $sjConfig['uploader']['allowed_types'])
+            ) {
+                throw new sjException($_SYSTEM['i18n']->__('Files with extension "%s" does not allowed', $newFileExt));
+            }
+
             $oldFile = reset($files);
             $dirname = dirname($oldFile);
             $fs->rename($oldFile, $dirname . DIRECTORY_SEPARATOR . $newFileName);
