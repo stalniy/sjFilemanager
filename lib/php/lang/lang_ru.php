@@ -98,6 +98,7 @@ $_SYSTEM['lang'] = array(
     'Unable to override. File is not writable' => 'Нет прав на перезапись файла',
     'Unable to create folder. Folder with this name already exists' => 'Невозможно создать каталог. Каталог с таким именем уже существует',
     'Permissions denied' => 'Нет прав на чтение',
-    'File name can not contains following symmbols: \/:*?<>|"\'' => 'Имя файла не должно содержать таких символов: \/:*?<>|"\''
+    'File name can not contains following symmbols: \/:*?<>|"\'' => 'Имя файла не должно содержать таких символов: \/:*?<>|"\'',
+    'Unable to create folder. Permissions denied' => 'Невозможно создать директорию. Недостаточно прав доступа'
 );
 ?>

@@ -1,0 +1,37 @@
+// Only one line comments are applicable for that file.
+// Each comment should be started at new line!
+{
+    "lang": "ru",
+    "charset": "utf-8",
+    "lib_dir": "%BASE_DIR%/lib/php",
+    "root":  "%DOCUMENT_ROOT%/uploads",
+    //"allowed_actions": [],
+    "uploader": {
+        "max_size": "%POST_MAX_SIZE%",
+        "allowed_types": ["jpeg","jpg","rar","png","doc","docx","ppt","pptx","xls","xlsx","mdb","accdb", "swf", "zip", "rtf", "pdf", "psd", "mp3", "wma", "flv", "mp4"],
+        "dynamic_name": true,
+        "override": false,
+        "images": {
+            "width": 500,
+            "height": 500,
+            // width, height, auto, percentage
+            "type": "width",
+            // left-top, left-bottom, center, right-top, right-bottom, custom {"x": 100, "y": 200}
+            "crop": "left-top"
+        },
+        "thumbs": {
+            //"tmb_": {
+            //  "width": 125,
+            //  "height": 70,
+            //  "type": "width",
+            //  "crop": "left-top"
+            //},
+            //"mcr_": {
+            //    "width": 50,
+            //    "height": 50,
+            //    "type": "width",
+            //    "crop": "left-top"
+            //}
+        }
+    }
+}

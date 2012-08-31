@@ -694,11 +694,15 @@ class sjI18n implements sjI18nInterface {
      */
     public function __() {
         $args = func_get_args();
-        if (isset($this->vocabulary[$args[0]])) {
-            $args[0] = $this->vocabulary[$args[0]];
+        $string = $args[0];
+        if (isset($this->vocabulary[$string])) {
+            $string = $this->vocabulary[$string];
         }
 
-        $string = call_user_func_array('sprintf', $args);
+        if (isset($args[1])) {
+            $args[0] = $string;
+            $string = call_user_func_array('sprintf', $args);
+        }
         $string = strtr($string, $this->hiddenStrings);
         return $string;
     }

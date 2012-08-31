@@ -127,7 +127,9 @@ try {
                 throw new sjException($_SYSTEM['i18n']->__('Unable to create folder. Folder with this name already exists'));
             }
 
-            $fs->mkdirs($path . $dirname);
+            if (!$fs->mkdirs($path . $dirname)) {
+                throw new sjException($_SYSTEM['i18n']->__('Unable to create folder. Permissions denied'));
+            }
         break;
         case 'rename':
             if (!$has_files || !isset($_REQUEST['fileNames']) || empty($_REQUEST['fileNames'])) {
@@ -156,10 +158,10 @@ try {
         break;
     }
 
-	$_RESULT['response']['status'] = 'correct';
-	$_RESULT['response']['msg'] = $_SYSTEM['lang']['REQUEST_DONE'];
+    $_RESULT['response']['status'] = 'correct';
+    $_RESULT['response']['msg'] = $_SYSTEM['lang']['REQUEST_DONE'];
 } catch (sjException $e) {
-	$_RESULT['response']['status'] = 'error';
+    $_RESULT['response']['status'] = 'error';
     $_RESULT['response']['msg']    = $e->getMessage();
 
     // for flash SWFUpload

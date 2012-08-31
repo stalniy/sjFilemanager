@@ -20,44 +20,32 @@ function pathIn($path, $base) {
 
 $_SYSTEM['tmpl_params'] = array();
 
-$sjConfig = array(
-    'lang'     => 'ru',
-    // allowed actions
-#    'allowed_actions' => array(),
-    'charset'  => 'utf-8',
-    'base_dir' => dirname(dirname(dirname(__FILE__))),
-    'root'     => rtrim($_SERVER['DOCUMENT_ROOT'], '/') . '/uploads/sjFilemanager',
-    'uploader' => array(
-        'allowed_types' => array('jpeg','jpg','rar','png','doc','docx','ppt','pptx','xls','xlsx','mdb','accdb', 'swf', 'zip', 'rtf', 'pdf', 'psd', 'mp3', 'wma', 'flv', 'mp4'),
-        'dynamic_name'  => true,
-        'override'      => false,
-        'images'        => array(
-            'width' => 500,
-            'height'=> 500,
-            'type'  => 'width', // width, height, auto, percentage
-            'crop'  => 'left-top' # left-top, left-bottom, center, right-top, right-bottom, custom array('x' => 100, 'y' => 200)
-        ),
-        'thumbs'        => array(
-            /*'tmb_' => array(
-                'width' => 125,
-                'height'=> 70,
-                'type'  => 'width',
-                'crop'  => 'left-top'
-            ),
-            'mcr_' => array(
-                'width' => 50,
-                'height'=> 50,
-                'type'  => 'width',
-                'crop'  => 'left-top'
-            )
-            */
-        )
-    )
-);
+if (!function_exists('json_decode')) {
+    throw new RuntimeException("PHP JSON module should be installed. Function json_decode does not exist");
+}
 
-$max_size = ini_get('post_max_size');
-$unit = strtoupper(substr($max_size, -1));
-$multiplier = ($unit == 'M' ? 1048576 : ($unit == 'K' ? 1024 : ($unit == 'G' ? 1073741824 : 1)));
+function prepareConfig($file) {
+    $max_size = ini_get('post_max_size');
+    $unit = strtoupper(substr($max_size, -1));
+    $multiplier = ($unit == 'M' ? 1048576 : ($unit == 'K' ? 1024 : ($unit == 'G' ? 1073741824 : 1)));
 
-$sjConfig['uploader']['max_size'] = 500 * 1024; #$multiplier * (float)$max_size;
-$sjConfig['lib_dir']  = $sjConfig['base_dir'] . '/lib/php';
+    $constants = array(
+        '%BASE_DIR%'      => dirname(dirname(dirname(__FILE__))),
+        '%DOCUMENT_ROOT%' => rtrim($_SERVER['DOCUMENT_ROOT'], '/'),
+        '%POST_MAX_SIZE%' => $multiplier * (float)$max_size
+    );
+
+    $file = dirname(__FILE__) . '/' . $file;
+    if (!is_readable($file)) {
+        throw new RuntimeException("Configuration file is missed. 'config.json' should be available for reading in the lib directory");
+    }
+
+    $config = file_get_contents($file);
+    $config = preg_replace('!^\s*(?://|#).++\s!m', '', $config);
+    $config = strtr($config, $constants);
+    return $config;
+}
+$sjConfig = json_decode(prepareConfig('../config.json'), true);
+if (!$sjConfig) {
+    throw new RuntimeException("Invalid configuration file: " . json_last_error());
+}
