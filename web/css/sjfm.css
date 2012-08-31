@@ -772,7 +772,7 @@ a.progressCancel:hover {
 #sjPath {
     z-index:50;
     position: absolute;
-    bottom: 2px; left: 2px;
+    bottom: 2px; left: 2px; right: 2px;
     height: 12px; line-height: 11px;
     _width: 90%; min-width: 90%;
     background-color:#fff;

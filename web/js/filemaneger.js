@@ -1104,7 +1104,7 @@ FileManage.getUploader = function(base_url, cfg){
     }, cfg || {}));
 };
 
-FileManage.createAndAttachMedia = function(baseUrl, rootUrl, translations) {
+FileManage.createAndAttachMedia = function(baseUrl, rootUrl, translations, uploaderCfg) {
     sjWindow.renderView();
     MediaManager.renderView(translations);
     this.i18n(translations);
@@ -1118,7 +1118,7 @@ FileManage.createAndAttachMedia = function(baseUrl, rootUrl, translations) {
     }).attachListeners({
         ready: function() {
             var fm = this;
-            this.setUploader(FileManage.getUploader(baseUrl));
+            this.setUploader(FileManage.getUploader(baseUrl, uploaderCfg));
             MediaManager.getInstance(sjs('#sjMediamanager').insertBefore('#sjWrapper').find('.sjMediaWrapper'), {
                 panel: '.sjMediaPanel',
                 lazy: true,
