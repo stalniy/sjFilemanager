@@ -17,54 +17,60 @@
     <script type="text/javascript">
         sjs.ready(function(){
             sjWindow.renderView();
-            FileManage.i18n($_LANG);
+            sjFileManager.i18n($_LANG);
 
             var baseUrl = '../../web/';
-            FileManage.getInstance(null, baseUrl + "?tmpl=window&show_actions=1", {
-                actionUrl: baseUrl,
-                rootUrl: '/uploads/sjFilemanager'
-            }, {
-                move: true,
-                resizable: true
-            }).attachListeners({
-                ready: function() {
-                    this.setUploader(FileManage.getUploader(baseUrl));
+
+            sjFileManager.configure({
+                url:  baseUrl,
+                root: '/uploads/sjFilemanager',
+                listeners: {
+                    ready: function() {
+                        this.setUploader(sjFileManager.getUploader(baseUrl));
+
+                        this.addAction('insert', {
+                            dynamic: true,
+                            before: 'refresh',
+                            'for': 'files',
+                            'class': 'sjfm_files_insert'
+                        }, function () {
+                            this.makeStek();
+                            var data = this.fileStek, i = data.length,
+                                wr = 0, url = this.rootUrl + this.getCurrentPath(),
+                                ins = sjs('#container'), html;
+
+                            if (!i) {
+                                return false;
+                            }
+
+                            while (i--) {
+                                var file = url + this.fileStek[i];
+                                if (/(?:jpe?g|gif|png)$/i.test(file)) {
+                                    html = '<img src="' + file + '" alt="'+file+'" style="max-width:100px" />';
+                                } else {
+                                    html = '<span>'+file+'</span>';
+                                }
+                                sjs('<div style="margin:5px; font-size: 12px;" />')
+                                    .append(html)
+                                    .append('<a href="#" onclick="sjs(this.parentNode).remove();return false" style="margin-left:5px">удалить</a>')
+                                    .appendTo(ins);
+                            }
+                            this.windows.main.close();
+                        });
+                    }
                 }
             });
 
             // just file manipulations
             sjs('#openManager').onEvent('click', function(e) {
                 sjs.event.preventDefault(e);
-                FileManage.getInstance(true);
+                var fm = sjFileManager.getInstance();
             });
 
             // with insert callback
             sjs('#openManagerCallback').onEvent('click', function(e) {
                 sjs.event.preventDefault(e);
-                FileManage.getInstance(function(){
-                    this.makeStek();
-                    var data = this.fileStek, i = data.length,
-                        wr = 0, url = this.rootUrl + this.getCurrentPath(),
-                        ins = sjs('#container'), html;
-
-                    if (!i) {
-                        return false;
-                    }
-
-                    while (i--) {
-                        var file = url + this.fileStek[i];
-                        if (/(?:jpe?g|gif|png)$/i.test(file)) {
-                            html = '<img src="' + file + '" alt="'+file+'" style="max-width:100px" />';
-                        } else {
-                            html = '<span>'+file+'</span>';
-                        }
-                        sjs('<div style="margin:5px; font-size: 12px;" />')
-                            .append(html)
-                            .append('<a href="#" onclick="sjs(this.parentNode).remove();return false" style="margin-left:5px">удалить</a>')
-                            .appendTo(ins);
-                    }
-                    this.windows.main.close();
-                });
+                var fm = sjFileManager.getInstance();
             });
         })
     </script>

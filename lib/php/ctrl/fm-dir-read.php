@@ -84,11 +84,7 @@ try {
         $file_actions = null;
     }
 
-    $tmpl = !empty($_SYSTEM['template']) ? $_SYSTEM['template'] : '';
-    if (!$tmpl) {
-        $tmpl = $_SYSTEM['is_ajax'] ? 'dir' : 'index';
-    }
-
+    $tmpl = !empty($_SYSTEM['template']) ? $_SYSTEM['template'] : 'dir';
     $view = new iView($tmpl);
 
     $view->setI18n($_SYSTEM['i18n'])->render(array(

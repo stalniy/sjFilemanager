@@ -19,7 +19,11 @@
     <script type="text/javascript" src="/weCmsPlugin/js/tiny_mce/tiny_mce.js"></script>
     <script type="text/javascript">
         sjs.ready(function(){
-            FileManage.createAndAttachMedia('../../web/', '/uploads/sjFilemanager', $_LANG);
+            sjFileManager.create({
+                url:  '../../web/',
+                root: '/uploads/sjFilemanager',
+                i18n: $_LANG
+            });
 
             sjs('#container').onEvent('click', function(e){
                 var $this = sjs.event.caller(e);
@@ -27,11 +31,16 @@
                     return true;
                 }
 
-                $this.parentNode.parentNode.removeChild($this.parentNode);
+                sjs($this.parentNode).remove();
                 return false;
             });
             sjs('#customCallback').onEvent('click', function(e){
-                FileManage.getInstance(function(){
+                sjFileManager.getInstance().addAction('insert', {
+                    dynamic: true,
+                    before: 'refresh',
+                    'for': 'files',
+                    'class': 'sjfm_files_insert'
+                }, function(){
                     var data = this.getChecked(), i = data.length,
                         wr = 0, url = this.rootUrl + this.getCurrentPath(),
                         ins = sjs('#container');
@@ -80,9 +89,9 @@
             theme_advanced_toolbar_align : "left",
             theme_advanced_statusbar_location : false,
             file_browser_callback: function(field, url, type, win){
-                if (window.FileManage) {
+                if (window.sjFileManager) {
                     sjWindow.max_zIndex=301000;
-                    FileManage.choiseCallback(field, '', type, win);
+                    sjFileManager.choiseCallback(field, '', type, win);
                 }
             }
         });

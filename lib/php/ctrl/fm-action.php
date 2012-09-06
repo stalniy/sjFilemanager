@@ -27,8 +27,7 @@ try {
 
     $fs = new iFilesystem();
     $fm = iFilemanager::create()
-        ->setFilesystem($fs->setI18n($_SYSTEM['i18n']))
-        ->setI18n($_SYSTEM['i18n']);
+        ->setFilesystem($fs->setI18n($_SYSTEM['i18n']));
 
     $files = array();
     $has_files = isset($_REQUEST['files']) && is_array($_REQUEST['files']);

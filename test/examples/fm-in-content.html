@@ -16,7 +16,7 @@
     <script type="text/javascript">
         sjs.ready(function(){
             sjWindow.renderView();
-            FileManage.i18n($_LANG);
+            sjFileManager.i18n($_LANG);
 
             var baseUrl = '../../web/';
             sjs.query(baseUrl, {
@@ -29,15 +29,14 @@
                 }
                 sjs('#container').html(html);
 
-                var fm = new FileManage(sjs('#sjFilemanager'), {
+                var fm = new sjFileManager(sjs('#sjFilemanager'), {
                     actionUrl: baseUrl,
                     rootUrl: '/uploads/sjFilemanager'
                 }, {
                     ready: function() {
-                        this.setUploader(FileManage.getUploader(baseUrl))
+                        this.setUploader(sjFileManager.getUploader(baseUrl))
                     }
                 });
-                fm.actionsBlock.find('*[name="insert"]').remove();
             }, 1);
         })
     </script>

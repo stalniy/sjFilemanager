@@ -7,12 +7,10 @@
  * file that was distributed with this source code.
  */
 ?><?php $view->strip() ?>
-<div id="sjPopup"></div>
 <div id="sjWrapper">
     <form class="sjs_form" name="sjs_form" action="" method="post" enctype="multipart/form-data">
         <div class="filemanagertop" id="sjFmActions" title="<?php echo $cur_dir ?>">
             <span class="loading somedo"></span>
-            <a href="#" name="insert" class="sjfm_files_insert sjsFMdinamic onlyFile">&nbsp;</a>
             <?php foreach ($file_actions as $item) :?>
             <a href="#" class="sjfm_files_<?php echo $item[0], ' ', $item[1]?>" title="<?php echo $item[2]?>" name="<?php echo $item[0]?>">&nbsp;</a>
             <?php endforeach ?>
@@ -25,7 +23,6 @@
             ))
         ?></div>
     </form>
-    <div id="sjPath"></div>
 </div>
 <!-- TMPL FOR JS WINDOWS -->
 <div id="sjConfirmTmpl" class="hide"><form class="sjs_form" action="">

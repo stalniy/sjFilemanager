@@ -97,8 +97,10 @@ $_SYSTEM['lang'] = array(
     'Template "%s" is not readable or not exists'  => 'Шаблон "%s" не читабельный или не существует',
     'Unable to override. File is not writable' => 'Нет прав на перезапись файла',
     'Unable to create folder. Folder with this name already exists' => 'Невозможно создать каталог. Каталог с таким именем уже существует',
-    'Permissions denied' => 'Нет прав на чтение',
+    'Permissions denied' => 'Недостаточно прав',
     'File name can not contains following symmbols: \/:*?<>|"\'' => 'Имя файла не должно содержать таких символов: \/:*?<>|"\'',
-    'Unable to create folder. Permissions denied' => 'Невозможно создать директорию. Недостаточно прав доступа'
+    'Unable to create folder. Permissions denied' => 'Невозможно создать директорию. Недостаточно прав доступа',
+    'Unable to remove directory. It seems directory is not empty or not enough permissions.' => 'Невозможно удалить каталог. Возможно директория не пустая или недостаточно прав',
+    'Unable to remove file. Maybe not enough permissions?' => 'Невозможно удалить файл. Возможно недостаточно прав?'
 );
 ?>

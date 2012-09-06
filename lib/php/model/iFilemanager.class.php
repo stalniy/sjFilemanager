@@ -638,6 +638,32 @@ class iFilesystem extends sfFilesystem implements sjFilesystem {
         rename($origin, $target);
     }
 
+    /**
+     * Removes files or directories.
+     *
+     * @throws sjException
+     * @param mixed $files  A filename or an array of files to remove
+     */
+    public function remove($files) {
+        if (!is_array($files)) {
+            $files = array($files);
+        }
+
+        $files = array_reverse($files);
+        foreach ($files as $file) {
+            if (is_dir($file) && !is_link($file)) {
+                $result = @rmdir($file);
+                $message = 'Unable to remove directory. It seems directory is not empty or not enough permissions.';
+            } else {
+                $result = @unlink($file);
+                $message = 'Unable to remove file. Maybe not enough permissions?';
+            }
+
+            if (!$result) {
+                throw new sjException($this->getI18n()->__($message));
+            }
+        }
+    }
 }
 
 /**
@@ -747,24 +773,7 @@ class iFilemanager {
         /**
          * Array of imported files
          */
-        $files = array(),
-        /**
-         * Translation object
-         *
-         * @var sjI18nInterface
-         */
-        $i18n;
-
-    /**
-     * Set i18n object
-     *
-     * @param sjI18nInterface $i18n
-     * @return iFilemanager
-     */
-    public function setI18n(sjI18nInterface $i18n) {
-        $this->i18n = $i18n;
-        return $this;
-    }
+        $files = array();
 
     /**
      * Get i18n object
@@ -772,7 +781,7 @@ class iFilemanager {
      * @return sjI18nInterface
      */
     public function getI18n() {
-        return $this->i18n;
+        return $this->fs->getI18n();
     }
 
     /**

@@ -521,7 +521,11 @@ sjs.prototype={
         })
     },
     insertBefore:function(domObj){
-        if(domObj.constructor==String) domObj=sjs(domObj)[0];
+        if (domObj.constructor==String) {
+            domObj=sjs(domObj)[0];
+        } else if (domObj.sjs) {
+            domObj = domObj[0];
+        }
         return this.iterate(function(){
             sjs.before(this,domObj)
         })

@@ -97,7 +97,7 @@ FileProgress.prototype={
 function fileQueued(file) {
     try {
         var progress = new FileProgress(file, this.customSettings.progressTarget);
-        progress.setStatus(FileManage.i18n('File added to queue'));
+        progress.setStatus(sjFileManager.i18n('File added to queue'));
         progress.toggleCancel(true, this);
     } catch (ex) {
         this.debug(ex);
@@ -118,20 +118,20 @@ function fileQueueError(file, errorCode, message) {
 
         switch (errorCode) {
         case SWFUpload.QUEUE_ERROR.FILE_EXCEEDS_SIZE_LIMIT:
-            progress.setStatus(FileManage.i18n("File is too big"));
+            progress.setStatus(sjFileManager.i18n("File is too big"));
             this.debug("Error Code: File too big, File name: " + file.name + ", File size: " + file.size + ", Message: " + message);
             break;
         case SWFUpload.QUEUE_ERROR.ZERO_BYTE_FILE:
-            progress.setStatus(FileManage.i18n("Cannot upload Zero Byte files"));
+            progress.setStatus(sjFileManager.i18n("Cannot upload Zero Byte files"));
             this.debug("Error Code: Zero byte file, File name: " + file.name + ", File size: " + file.size + ", Message: " + message);
             break;
         case SWFUpload.QUEUE_ERROR.INVALID_FILETYPE:
-            progress.setStatus(FileManage.i18n("Invalid File Type"));
+            progress.setStatus(sjFileManager.i18n("Invalid File Type"));
             this.debug("Error Code: Invalid File Type, File name: " + file.name + ", File size: " + file.size + ", Message: " + message);
             break;
         default:
             if (file !== null) {
-                progress.setStatus(FileManage.i18n("Unhandled Error"));
+                progress.setStatus(sjFileManager.i18n("Unhandled Error"));
             }
             this.debug("Error Code: " + errorCode + ", File name: " + file.name + ", File size: " + file.size + ", Message: " + message);
             break;
@@ -157,7 +157,7 @@ function fileDialogComplete(numFilesSelected, numFilesQueued) {
 function uploadStart(file) {
     try {
         var progress = new FileProgress(file, this.customSettings.progressTarget);
-        progress.setStatus(FileManage.i18n("Uploading") + '...');
+        progress.setStatus(sjFileManager.i18n("Uploading") + '...');
         progress.toggleCancel(true, this);
     }
     catch (ex) {}
@@ -171,7 +171,7 @@ function uploadProgress(file, bytesLoaded, bytesTotal) {
 
         var progress = new FileProgress(file, this.customSettings.progressTarget);
         progress.setProgress(percent);
-        progress.setStatus(FileManage.i18n("Uploading") + '...');
+        progress.setStatus(sjFileManager.i18n("Uploading") + '...');
     } catch (ex) {
         this.debug(ex);
     }
@@ -186,7 +186,7 @@ function uploadSuccess(file, serverData) {
             progress.setStatus(serverData);
         }else{
             progress.setComplete();
-            progress.setStatus(FileManage.i18n("Successfully uploaded"));
+            progress.setStatus(sjFileManager.i18n("Successfully uploaded"));
             queueComplete(++this.customSettings.queue_upload_count);
         }
         progress.toggleCancel(false);
@@ -205,32 +205,32 @@ function uploadError(file, errorCode, message) {
 
         switch (errorCode) {
         case SWFUpload.UPLOAD_ERROR.HTTP_ERROR:
-            progress.setStatus(FileManage.i18n("Upload Error") + ': ' + FileManage.i18n(message));
+            progress.setStatus(sjFileManager.i18n("Upload Error") + ': ' + sjFileManager.i18n(message));
             this.debug("Error Code: HTTP Error, File name: " + file.name + ", Message: " + message);
             break;
         case SWFUpload.UPLOAD_ERROR.UPLOAD_FAILED:
-            progress.setStatus(FileManage.i18n("Upload Failed"));
+            progress.setStatus(sjFileManager.i18n("Upload Failed"));
             this.debug("Error Code: Upload Failed, File name: " + file.name + ", File size: " + file.size + ", Message: " + message);
             break;
         case SWFUpload.UPLOAD_ERROR.IO_ERROR:
-            progress.setStatus(FileManage.i18n("Server (IO) Error"));
+            progress.setStatus(sjFileManager.i18n("Server (IO) Error"));
             this.debug("Error Code: IO Error, File name: " + file.name + ", Message: " + message);
             break;
         case SWFUpload.UPLOAD_ERROR.SECURITY_ERROR:
-            progress.setStatus(FileManage.i18n("Security Error"));
+            progress.setStatus(sjFileManager.i18n("Security Error"));
             this.debug("Error Code: Security Error, File name: " + file.name + ", Message: " + message);
             break;
         case SWFUpload.UPLOAD_ERROR.UPLOAD_LIMIT_EXCEEDED:
-            progress.setStatus(FileManage.i18n("Upload limit exceeded"));
+            progress.setStatus(sjFileManager.i18n("Upload limit exceeded"));
             this.debug("Error Code: Upload Limit Exceeded, File name: " + file.name + ", File size: " + file.size + ", Message: " + message);
             break;
         case SWFUpload.UPLOAD_ERROR.FILE_VALIDATION_FAILED:
-            progress.setStatus(FileManage.i18n("Failed Validation. Upload skipped"));
+            progress.setStatus(sjFileManager.i18n("Failed Validation. Upload skipped"));
             this.debug("Error Code: File Validation Failed, File name: " + file.name + ", File size: " + file.size + ", Message: " + message);
             break;
         case SWFUpload.UPLOAD_ERROR.FILE_CANCELLED:
             // If there aren't any files left (they were all cancelled) disable the cancel button
-            progress.setStatus(FileManage.i18n("Cancelled"));
+            progress.setStatus(sjFileManager.i18n("Cancelled"));
             progress.setCancelled();
             if (this.getStats().files_queued===0) {
                 var btn = document.getElementById(this.customSettings.cancelButtonId);
@@ -240,10 +240,10 @@ function uploadError(file, errorCode, message) {
             }
             break;
         case SWFUpload.UPLOAD_ERROR.UPLOAD_STOPPED:
-            progress.setStatus(FileManage.i18n("Stopped"));
+            progress.setStatus(sjFileManager.i18n("Stopped"));
             break;
         default:
-            progress.setStatus(FileManage.i18n("Unhandled Error") + ': ' + errorCode);
+            progress.setStatus(sjFileManager.i18n("Unhandled Error") + ': ' + errorCode);
             this.debug("Error Code: " + errorCode + ", File name: " + file.name + ", File size: " + file.size + ", Message: " + message);
             break;
         }

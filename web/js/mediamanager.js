@@ -8,6 +8,7 @@
 /**
  * Media manager functionality
  *
+
  * @package    sjFilemanager
  * @author     Stotskiy Sergiy <serjo@freaksidea.com>
  * @version    SVN: $Id$
@@ -597,12 +598,7 @@ var MediaManager = new sjs.plugin({
         }
         return this;
     },
-    attachHandler: function(name, link, foreignName) {
-        MediaManager.link(link, this.id);
-        link.setAttribute('name', foreignName);
-        return this[name + 'Relational'];
-    },
-    wakeupRelational: function(link) {
+    lazyWakeUp: function(link) {
         var mm = MediaManager.get(link), files = null,
             a  = sjs(link), parent = mm.body.parent().parent();
         if (a.hasClass('active')) {
@@ -979,11 +975,21 @@ var MediaManager = new sjs.plugin({
         return this;
     },
     syncWithFileManager: function(fm, afterBtnName) {
-        var a = sjs('<a href="#" class="onlyFile sjsFMdinamic showMediaManager">&nbsp;</a>')
-            .insertAfter(fm.getActionBlock(afterBtnName));
-        fm.setAction('openMedia', this.attachHandler('wakeup', a[0], 'openMedia'));
+        var fn = this.lazyWakeUp, id = this.id, link;
+        fm.addAction('openMedia', {
+            'for': 'files',
+            dynamic: true,
+            'class': 'showMediaManager',
+            after: afterBtnName
+        }, function (btn) {
+            link = btn;
+            MediaManager.link(btn, id);
+            fn.call(this, btn);
+        });
+
         this.attachListeners({
             changeState: function(isSleepy) {
+                var a = sjs(link);
                 if (isSleepy && a.hasClass('active')) {
                     a.removeClass('active');
                 }
