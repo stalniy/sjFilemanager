@@ -1899,7 +1899,7 @@ sjs.ScrollableContent = new sjs.plugin({
         };
 
         sjs(content).mousewheel(function() {
-            if (this.scrollHeight - this.scrollTop >= this.scrollHeight / self.cfg.gt) {
+            if (this.scrollHeight - this.scrollTop <= this.scrollHeight / self.cfg.gt) {
                 self.load()
             }
         });
