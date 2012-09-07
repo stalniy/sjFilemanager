@@ -1892,8 +1892,11 @@ sjs.ScrollableContent = new sjs.plugin({
         this.cfg.gt = options.gt || 3;
         this.cfg.data = options.data || {};
         this.cfg.url  = options.url;
-        this.promise  = new sjs.promise();
         this.loaded   = {};
+        this.events   = {
+            load: new sjs.promise(),
+            data: new sjs.promise()
+        };
 
         sjs(content).mousewheel(function() {
             if (this.scrollHeight - this.scrollTop >= this.scrollHeight / self.cfg.gt) {
@@ -1909,18 +1912,19 @@ sjs.ScrollableContent = new sjs.plugin({
         }
 
         this.cfg.data.offset = this.per_page * this.page + 1;
+        self.events.data.resolve(this.cfg.data);
 
         this.loaded[key] = true;
         sjs.query(this.cfg.url, this.cfg.data, function (js, html) {
-            self.promise.resolve({
+            self.events.load.resolve({
                 js: js,
                 html: html,
                 loader: self
             });
         }, 1);
     },
-    onLoad: function (fn) {
-        this.promise.resolve(fn);
+    on: function (event, fn) {
+        this.events[event].resolve(fn);
         return this;
     },
     clearCache: function () {

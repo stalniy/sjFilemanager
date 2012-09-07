@@ -26,6 +26,7 @@ if ($_SYSTEM['is_ajax']) {
 
     $_SYSTEM['jsRequest'] = new JsHttpRequest($sjConfig['charset']);
     $GLOBALS['_RESULT'] = array();
+    $_RESULT = &$GLOBALS['_RESULT'];
 }
 
 

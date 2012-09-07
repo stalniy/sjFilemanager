@@ -1276,13 +1276,11 @@ sjFileManager.create = function(options) {
         var scr = new sjs.ScrollableContent(content.parent(2), {
             url: cfg.get('fm.actionUrl'),
             per_page: cfg.get('fm.files_per_page'),
-            data: {
-                format: 'json'
-            }
+            data: { format: 'json' }
         });
 
         var fm = this;
-        scr.onLoad(function (data) {
+        scr.on('load', function (data) {
             var response = data.js;
             if (response.files && response.files.source) {
                 var files = response.files.source;
@@ -1297,6 +1295,8 @@ sjFileManager.create = function(options) {
                     data.loader.page++;
                 }
             }
+        }).on('data', function (data) {
+            data.dirpath = fm.getCurrentPath();
         });
     });
 
