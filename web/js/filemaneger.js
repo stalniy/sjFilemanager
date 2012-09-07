@@ -358,6 +358,7 @@ var sjFileManager = new sjs.plugin({
                     setTimeout(function(){
                         wrap.first().remove();
                         wrap.first().html(html.join("&gt;"))
+                        wrap.first().first().setClass('root');
                     }, 10);
                 } else {
                     wrap.find('a.act').removeClass('act');
@@ -1121,11 +1122,10 @@ sjFileManager.getInstance = function() {
 };
 
 var HelperMixin = {
-    exportToField: function (field, url, type, win) {
-        url = url || this.rootUrl;
+    exportToField: function (field, type, win) {
         this.makeStek();
         if (this.fileStek && this.fileStek.length) {
-            url = url + this.getCurrentPath();
+            url = this.rootUrl + this.getCurrentPath();
 
             if (typeof field == 'string') {
                 field = sjs(win.document.getElementById(field));
@@ -1135,10 +1135,10 @@ var HelperMixin = {
 
             switch (type) {
                 case 'multiple':
-                    field.prop('value', url + '|' + this.fileStek.join(":"));
+                    field.prop('value', this.rootUrl + '|' + this.fileStek.join(":"));
                 break;
                 default:
-                    field.prop('value', url + this.fileStek[0]);
+                    field.prop('value', this.rootUrl + this.fileStek[0]);
                 break;
             }
             field.trigger('change');
@@ -1147,14 +1147,20 @@ var HelperMixin = {
     }
 };
 
-sjFileManager.choiseCallback = function(field, url, type, win) {
+sjFileManager.choiseCallback = function(field, path, type, win) {
     return sjs.when(sjFileManager.getInstance(), function (fm) {
+        path = String(path);
+        path && fm.open(
+            path.charAt(path.length - 1) == '/'
+            ? path
+            : sjs.pathinfo(path).dirname
+        );
         fm.addAction('insert', {
             before: 'refresh',
             dynamic: true,
             'class': 'sjfm_files_insert',
             'for': 'files'
-        }, HelperMixin.exportToField.bind(fm, field, url, type, win));
+        }, HelperMixin.exportToField.bind(fm, field, type, win));
     });
 };
 
@@ -1271,8 +1277,8 @@ sjFileManager.create = function(options) {
     cfg.get('fm.listeners.ready').push(function (content) {
         var scr = new sjs.ScrollableContent(content.parent(2), {
             url: cfg.get('fm.actionUrl'),
+            per_page: cfg.get('fm.files_per_page'),
             data: {
-                per_page: cfg.get('fm.files_per_page'),
                 format: 'json'
             }
         });
@@ -1294,5 +1300,9 @@ sjFileManager.create = function(options) {
                 }
             }
         });
+    });
+
+    cfg.set('fm.liseners.refresh', []).get('fm.liseners.refresh').push(function () {
+        scr.clearCache();
     });
 };

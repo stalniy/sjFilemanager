@@ -7,7 +7,7 @@ button::-moz-focus-inner {border:none}
 .no_margin {margin:0}
 .clear {clear:both;font-size:1px;line-height:1px;}
 plugsometoolbar, .hide {display:none}
-.hidden {position:absolute;visibility:hidden;top:0}
+.hidden {position:absolute;visibility:hidden;top:-100px}
 .unvisible {visibility:hidden}
 .relative {position:relative}
 .left {float:left}
@@ -29,9 +29,12 @@ html, body, body a, body input, a:active, a:focus, button {
     outline-style:none;
 }
 
+.sjs_window .window_main {
+    padding-bottom: 23px;
+}
+
 #sjWrapper {
     text-align:left;
-    padding-bottom: 20px;
     font-size: 12px;
     font-family: Arial, Verdana, Helvetica, sans-serif;
 }
@@ -540,7 +543,6 @@ html, body, body a, body input, a:active, a:focus, button {
 }
 
 .sjs_window .sjs_wcontent {
-    padding: 1px;
     margin:0 2px 2px;
     background-color:#eee;
 
@@ -786,9 +788,11 @@ a.progressCancel:hover {
 
 #sjPath a {
     display: inline-block;
+    height: 16px;
     color:#4f6b72;
     margin: 0 3px;
     font:normal 12px/11px Arial, Verdana, Helvetica, sans-serif;
+    vertical-align: top;
 }
 
 #sjPath a.act {

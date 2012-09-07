@@ -469,6 +469,10 @@ sjWindow.expandContent=function(w,content){
         }
     }
 
+    size = content.parent().getSize();
+    height += size.padding[0] + size.padding[2];
+    width += size.padding[1] + size.padding[3];
+
     content.css({
         height: sjs(w).height() - height - sjs('.sjs_wtop', w).height() + 'px',
         width:  sjs(w).width()  - width  +'px'

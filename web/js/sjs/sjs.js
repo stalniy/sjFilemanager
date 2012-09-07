@@ -1908,7 +1908,7 @@ sjs.ScrollableContent = new sjs.plugin({
             return false;
         }
 
-        this.cfg.data.offset = this.per_page * this.page;
+        this.cfg.data.offset = this.per_page * this.page + 1;
 
         this.loaded[key] = true;
         sjs.query(this.cfg.url, this.cfg.data, function (js, html) {
@@ -1921,6 +1921,10 @@ sjs.ScrollableContent = new sjs.plugin({
     },
     onLoad: function (fn) {
         this.promise.resolve(fn);
+        return this;
+    },
+    clearCache: function () {
+        this.loaded = {};
         return this;
     }
 });
