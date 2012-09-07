@@ -33,7 +33,7 @@ var sjFileManager = new sjs.plugin({
         this.id         = content[0].sjsEventId;
         this.actionUrl  = (cfg.actionUrl || '').replace(/[\\\/]+$/, '') + '/';
         this.dirUrl     = cfg.dirUrl || this.actionUrl;
-        this.rootUrl    = (cfg.rootUrl || '').replace(/[\\\/]+$/, '') + '/';
+        this.rootUrl    = (cfg.rootUrl || '').replace(/[\\\/]+$/, '');
         this.events     = events || {};
         this.dirStek    = null;
         this.fileStek   = null;
@@ -1122,23 +1122,21 @@ sjFileManager.getInstance = function() {
 };
 
 var HelperMixin = {
-    exportToField: function (field, type, win) {
+    exportToField: function (field, type) {
         this.makeStek();
         if (this.fileStek && this.fileStek.length) {
-            url = this.rootUrl + this.getCurrentPath();
+            var url = this.rootUrl + this.getCurrentPath();
 
-            if (typeof field == 'string') {
-                field = sjs(win.document.getElementById(field));
-            } else if (!field.sjs) {
+            if (!field.sjs) {
                 field = sjs(field);
             }
 
             switch (type) {
                 case 'multiple':
-                    field.prop('value', this.rootUrl + '|' + this.fileStek.join(":"));
+                    field.prop('value', url + '|' + this.fileStek.join(":"));
                 break;
                 default:
-                    field.prop('value', this.rootUrl + this.fileStek[0]);
+                    field.prop('value', url + this.fileStek[0]);
                 break;
             }
             field.trigger('change');
@@ -1147,9 +1145,9 @@ var HelperMixin = {
     }
 };
 
-sjFileManager.choiseCallback = function(field, path, type, win) {
+sjFileManager.choiseCallback = function(field, type) {
     return sjs.when(sjFileManager.getInstance(), function (fm) {
-        path = String(path);
+        path = String(field.value).replace(fm.rootUrl, '');
         path && fm.open(
             path.charAt(path.length - 1) == '/'
             ? path
@@ -1160,7 +1158,7 @@ sjFileManager.choiseCallback = function(field, path, type, win) {
             dynamic: true,
             'class': 'sjfm_files_insert',
             'for': 'files'
-        }, HelperMixin.exportToField.bind(fm, field, type, win));
+        }, HelperMixin.exportToField.bind(fm, field, type));
     });
 };
 

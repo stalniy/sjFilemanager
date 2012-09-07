@@ -93,7 +93,10 @@
             file_browser_callback: function(field, url, type, win){
                 if (window.sjFileManager) {
                     sjWindow.max_zIndex=301000;
-                    sjFileManager.choiseCallback(field, '', type, win);
+                    sjFileManager.choiseCallback(
+                        typeof field == 'string' ? win.document.getElementById(field) : field,
+                        type
+                    );
                 }
             }
         });
