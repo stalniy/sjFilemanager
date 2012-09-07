@@ -33,7 +33,7 @@ var sjFileManager = new sjs.plugin({
         this.id         = content[0].sjsEventId;
         this.actionUrl  = (cfg.actionUrl || '').replace(/[\\\/]+$/, '') + '/';
         this.dirUrl     = cfg.dirUrl || this.actionUrl;
-        this.rootUrl    = (cfg.rootUrl || '').replace(/[\\\/]+$/, '');
+        this.rootUrl    = (cfg.rootUrl || '').replace(/[\\\/]+$/, '') + '/';
         this.events     = events || {};
         this.dirStek    = null;
         this.fileStek   = null;
@@ -140,7 +140,7 @@ var sjFileManager = new sjs.plugin({
     },
     open: function(path){
         path = path.trim();
-        if (path) {
+        if (path && path != this.getCurrentPath()) {
             this.doAction('opendir', path, this.lastSelected);
         }
     },
