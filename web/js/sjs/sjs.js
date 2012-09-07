@@ -48,6 +48,12 @@ window.undefined=window.undefined;
         var __method=this, args=Array.prototype.slice.call(arguments,1);
         return window.setInterval(function(){ return __method.apply(__method, args)},time*1000)
     };
+    if (!fn.bind) {
+        fn.bind = function (ctx) {
+            var __method=this, args=Array.prototype.slice.call(arguments,1);
+            return function(){ return __method.apply(ctx, args) };
+        };
+    }
 
     fn=String.prototype;
     fn.hex2rgb=function(){
@@ -231,9 +237,18 @@ sjs.prototype={
             }
         })
     },
-    mousewheel:function(){
+    mousewheel:function(fn){
         var type;
-        this.iterate(function(){type=sjs.event.attachWheel(this,sjs.event.call)});
+        this.iterate(function(){
+            type=sjs.event.attachWheel(this,sjs.event.call);
+            if (fn) {
+                sjs.event.add(type,fn,this.sjsEventId);
+                var data = sjs.event[this.sjsEventId];
+                if (data['DOMMouseScroll'] && !data['mousewheel']) {
+                    data['mousewheel'] = data['DOMMouseScroll'];
+                }
+            }
+        });
         this.eventType=type;
         return this
     },
@@ -404,7 +419,17 @@ sjs.prototype={
                 callback.call(p,v,i,obj);
                 pp=res[res.length]=p
             };
-        }else{
+        }else if (Number(callback) > 0) {
+            var num = Number(callback);
+            fn=function(){
+                var p=this.parentNode;
+                while (p && num--) {
+                    p=p.parentNode;
+                }
+                if(!p||pp==p) return true;
+                pp=res[res.length]=p
+            };
+        } else {
             fn=function(){
                 var p=this.parentNode;
                 if(!p||pp==p) return true;
@@ -1373,8 +1398,12 @@ sjs.extend({
             return this.offsetXY(e)
         },
         attachWheel:function(obj,fn){
-            if(obj.addEventListener && sjs.browser.mozilla){ this.attachWheel=function(obj,fn){
-                obj.addEventListener('DOMMouseScroll',fn,false);return 'DOMMouseScroll'}
+            if(obj.addEventListener){
+              this.attachWheel=function(obj,fn){
+                  obj.addEventListener('DOMMouseScroll',fn,false);
+                  obj.addEventListener('mousewheel',fn,false);
+                  return 'DOMMouseScroll'
+              }
             }else{
                 this.attachWheel=function(obj,fn){obj.onmousewheel=fn;return 'mousewheel'}
             }
@@ -1803,6 +1832,99 @@ sjs.extend({
         return r
     }
 });
+
+sjs.when = function (promise, onOk, onErr) {
+    if (promise.resolve) {
+        return promise.resolve(onOk).reject(onErr);
+    } else {
+        return onOk.call(promise, promise);
+    }
+};
+
+sjs.promise = function () {
+    this.callbacks = { ok: [], err: [] };
+    this.state = null;
+};
+
+sjs.promise.prototype = {
+    _call: function (type, object) {
+        var fns = this.callbacks[type], i = fns.length;
+        while (i--) {
+            fns[i].call(this, object);
+        }
+    },
+    resolve: function (obj) {
+        if (sjs.isFn(obj)) {
+            this.callbacks.ok.push(obj);
+        } else {
+            this.state = true;
+            this._call('ok', obj);
+        }
+        return this;
+    },
+    reject: function (obj) {
+        if (sjs.isFn(obj)) {
+            this.callbacks.err.push(obj);
+        } else {
+            this.state = false;
+            this._call('err', null);
+        }
+        return this;
+    },
+    isOk: function () {
+        return this.state === true
+    },
+    isErr: function () {
+        return this.state === false
+    },
+    isResolved: function () {
+        return this.state !== null
+    }
+};
+
+sjs.ScrollableContent = new sjs.plugin({
+    __construct: function (content, options) {
+        options = options || {};
+        var self = this;
+        this.cfg = {};
+        this.page   = options.page || 1;
+        this.per_page = options.per_page || 15;
+        this.cfg.gt = options.gt || 3;
+        this.cfg.data = options.data || {};
+        this.cfg.url  = options.url;
+        this.promise  = new sjs.promise();
+        this.loaded   = {};
+
+        sjs(content).mousewheel(function() {
+            if (this.scrollHeight - this.scrollTop >= this.scrollHeight / self.cfg.gt) {
+                self.load()
+            }
+        });
+    },
+    load: function (force) {
+        var self = this, key = this.page;
+
+        if (!force && this.loaded[key]) {
+            return false;
+        }
+
+        this.cfg.data.offset = this.per_page * this.page;
+
+        this.loaded[key] = true;
+        sjs.query(this.cfg.url, this.cfg.data, function (js, html) {
+            self.promise.resolve({
+                js: js,
+                html: html,
+                loader: self
+            });
+        }, 1);
+    },
+    onLoad: function (fn) {
+        this.promise.resolve(fn);
+        return this;
+    }
+});
+
 (function(){var b=navigator.userAgent.toLowerCase(), opera=b.indexOf('opera')!=-1, webkit=b.indexOf('webkit')!=-1;
     sjs.browser={
         lang:navigator.language||navigator.userLanguage,

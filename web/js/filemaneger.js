@@ -16,7 +16,20 @@
 (function() {
 sjs.globals.fm={};
 var sjFileManager = new sjs.plugin({
-    __construct:function(content, cfg, events){
+    __construct:function(content, cfg, listeners){
+        this.create(content, cfg, listeners)
+    },
+    __destruct:function(){
+        delete sjs.globals.fm[this.id];
+        this.clearStek('dir', 'file');
+        for (name in this.windows) {
+            if (this.windows[name].__destruct) {
+                this.windows[name].__destruct();
+            }
+        }
+        this.windows=this.requestData=this.events=this.lastSelected=this.id=null;
+    },
+    create: function (content, cfg, events) {
         this.id         = content[0].sjsEventId;
         this.actionUrl  = (cfg.actionUrl || '').replace(/[\\\/]+$/, '') + '/';
         this.dirUrl     = cfg.dirUrl || this.actionUrl;
@@ -38,16 +51,6 @@ var sjFileManager = new sjs.plugin({
         sjs.globals.fm[this.id]=this;
 
         this.notify('ready', content);
-    },
-    __destruct:function(){
-        delete sjs.globals.fm[this.id];
-        this.clearStek('dir', 'file');
-        for (name in this.windows) {
-            if (this.windows[name].__destruct) {
-                this.windows[name].__destruct();
-            }
-        }
-        this.windows=this.requestData=this.events=this.lastSelected=this.id=null;
     },
     findLastSelected:function(tbl){
         tbl=tbl.tBodies[0];
@@ -148,14 +151,6 @@ var sjFileManager = new sjs.plugin({
             this.checked = false
         });
         this.restoreDefaultActions();
-        return this;
-    },
-    notify: function(eventName) {
-        if (sjs.isFn(this.events[eventName])) {
-            var args = sjs.toList(arguments);
-            args.shift();
-            this.events[eventName].apply(this, args);
-        }
         return this;
     },
     initialize:function(content){
@@ -301,11 +296,23 @@ var sjFileManager = new sjs.plugin({
 
         return template;
     },
+    addRow: function (data) {
+        var row = this.getRowTemplate(data.type),
+            tds = row.find('td');
+
+        // checkbox value
+        tds.nth(0).first().value(data.basename);
+        tds.nth(1).first().text(data.name);
+        tds.nth(2).text(data.type == 'dir' ? ' ' : data.type);
+        tds.nth(3).text(data.size);
+        tds.nth(4).text(data.modify)
+
+        this.getContent().find('tbody')
+            .append(row);
+        return this;
+    },
     addStandardHandlers: function() {
-        if (!this.events) {
-            return this;
-        }
-        if (!sjs.isFn(this.events.serverError)) {
+        if (!this.hasListeners('serverError')) {
             this.addListener('serverError', function(js, html) {
                 sjs('#sjPopup').text(js.response.msg).show(true).animate('opacity', {
                     start: 0, end: 1,
@@ -319,7 +326,7 @@ var sjFileManager = new sjs.plugin({
                 }, .5);
             });
         }
-        if (!sjs.isFn(this.events.displayPath)) {
+        if (!this.hasListeners('displayPath')) {
             this.addListener('displayPath', function(path) {
                 var fullPath = path;
                 path = (path || '/').replace(/\/+$/, '').split('/');
@@ -360,9 +367,31 @@ var sjFileManager = new sjs.plugin({
         }
         return this;
     },
+    hasListeners: function (eventName) {
+        return !!this.events[eventName] && this.events[eventName].length
+    },
+    clearListeners: function (eventName) {
+        if (this.events[eventName]) {
+            this.events[eventName] = null;
+        }
+    },
     addListener: function(eventName, listener) {
         if (sjs.isFn(listener)) {
-            this.events[eventName] = listener;
+            if (!this.events[eventName]) {
+                this.events[eventName] = [];
+            }
+            this.events[eventName].push(listener);
+        }
+        return this;
+    },
+    notify: function(eventName) {
+        if (this.events[eventName] && this.events[eventName].push) {
+            var args = sjs.toList(arguments), fns = this.events[eventName],
+                i = fns.length;
+            args.shift();
+            while (i--) {
+               fns[i].apply(this, args);
+            }
         }
         return this;
     },
@@ -1017,6 +1046,13 @@ var Config = {
     }
 };
 
+Config.set('fm.listeners.ready', [])
+  .set('fm.listeners.displayPath', [])
+  .set('fm.listeners.serverError', [])
+  .set('fm.listeners.serverOk', [])
+  .set('fm.listeners.click', [])
+  .set('fm.listeners.dblclick', []);
+
 sjFileManager.configure = function (options) {
     if (options.i18n) {
         this.i18n(options.i18n);
@@ -1031,7 +1067,7 @@ sjFileManager.configure = function (options) {
         .set('fm.container', options.container, '#sjFilemanager')
         .set('fm.rootUrl', options.root)
         .set('fm.actionUrl', sjs.trim(options.url))
-        .set('fm.listeners', options.listeners);
+        .set('fm.files_per_page', options.files_per_page, 100);
 
     options.window = options.window || {};
     Config.set('window.tmpl', '#sjWindowTmpl')
@@ -1044,32 +1080,31 @@ sjFileManager.configure = function (options) {
     return Config;
 };
 
-var Instance;
+var Instance = new sjs.promise();
 sjFileManager.getInstance = function() {
-    if (Instance) {
-        if (Instance instanceof sjFileManager) {
-            Instance.getWindow('main').show().position();
-            Instance.reset();
-            return Instance;
-        }
-        return null;
+    if (Instance instanceof sjFileManager) {
+        Instance.getWindow('main').show().position();
+        Instance.reset();
+        return Instance;
     }
 
     if (!Config.get('window') || !Config.get('url') || !Config.get('fm')) {
         throw "sjFilemanager was not configured. Use sjFilemanager.configure method!";
     }
-    
-    Instance = 'initializing';
+
     var w = new sjWindow(Config.get('url'), Config.get('window'), function(content, js, html) {
         var node = sjs(Config.get('fm.container'));
 
         if (!node.length) {
+            Instance.reject();
             throw "Config 'fm.container' does not match any DOM element. Maybe the problem with server response";
         }
 
-        Instance = new sjFileManager(node, Config.get('fm'), Config.get('fm.listeners'));
-        Instance.windows.main = this;
+        var fm = new sjFileManager(node, Config.get('fm'), Config.get('fm.listeners'));
+        fm.windows.main = this;
         Config.clear();
+        Instance.resolve(fm);
+        Instance = fm;
 
         this.position().toInnerSize();
         sjs.className.set(this.window, 'sjFilemanagerWindow');
@@ -1084,6 +1119,45 @@ sjFileManager.getInstance = function() {
     };
     return Instance;
 };
+
+var HelperMixin = {
+    exportToField: function (field, url, type, win) {
+        url = url || this.rootUrl;
+        this.makeStek();
+        if (this.fileStek && this.fileStek.length) {
+            url = url + this.getCurrentPath();
+
+            if (typeof field == 'string') {
+                field = sjs(win.document.getElementById(field));
+            } else if (!field.sjs) {
+                field = sjs(field);
+            }
+
+            switch (type) {
+                case 'multiple':
+                    field.prop('value', url + '|' + this.fileStek.join(":"));
+                break;
+                default:
+                    field.prop('value', url + this.fileStek[0]);
+                break;
+            }
+            field.trigger('change');
+            this.windows.main.close();
+        }
+    }
+};
+
+sjFileManager.choiseCallback = function(field, url, type, win) {
+    return sjs.when(sjFileManager.getInstance(), function (fm) {
+        fm.addAction('insert', {
+            before: 'refresh',
+            dynamic: true,
+            'class': 'sjfm_files_insert',
+            'for': 'files'
+        }, HelperMixin.exportToField.bind(fm, field, url, type, win));
+    });
+};
+
 window.sjFileManager = sjFileManager;
 }())
 
@@ -1153,76 +1227,72 @@ sjFileManager.getUploader = function(url, cfg){
     }, cfg || {}));
 };
 
-sjFileManager.choiseCallback = function(field, url, type, win){
-    return sjFileManager.getInstance().addAction('insert', {
-        before: 'refresh',
-        dynamic: true,
-        'class': 'sjfm_files_insert',
-        'for': 'files'
-    }, function() {
-        url = url || this.rootUrl;
-        this.makeStek();
-        if (this.fileStek && this.fileStek.length) {
-            url = url + this.getCurrentPath();
-
-            if (typeof field == 'string') {
-                field = sjs(win.document.getElementById(field));
-            } else if (!field.sjs) {
-                field = sjs(field);
-            }
-
-            switch (type) {
-                case 'multiple':
-                    field.prop('value', url + '|' + this.fileStek.join(":"));
-                break;
-                default:
-                    field.prop('value', url + this.fileStek[0]);
-                break;
-            }
-            field.trigger('change');
-            this.windows.main.close();
-        }
-    });
-};
-// url, rootUrl
 sjFileManager.create = function(options) {
     sjWindow.renderView();
     MediaManager.renderView(options.i18n);
 
     var cfg = sjFileManager.configure(options);
-    cfg.set('fm.listeners', sjs.extend({
-        ready: function() {
-            var fm = this, uploader = sjFileManager.getUploader(
-                cfg.get('url'),
-                cfg.get('fm.upoader')
-            );
-            this.setUploader(uploader);
+    cfg.get('fm.listeners.ready').push(function() {
+        var fm = this, uploader = sjFileManager.getUploader(
+            cfg.get('url'),
+            cfg.get('fm.upoader')
+        );
+        this.setUploader(uploader);
 
-            var c = sjs('#sjMediamanager').insertBefore('#sjWrapper')
-                .find('.sjMediaWrapper');
-            MediaManager.getInstance(c, {
-                panel: '.sjMediaPanel',
-                lazy: true,
-                saveUrl: cfg.get('url')
-            }).syncWithFileManager(fm, 'refresh').addListener('serverOk', function(js, html){
-                this.unsFiles(js.media.rm);
-                this.addFiles(js.media.add);
+        var c = sjs('#sjMediamanager').insertBefore('#sjWrapper')
+            .find('.sjMediaWrapper');
+        MediaManager.getInstance(c, {
+            panel: '.sjMediaPanel',
+            lazy: true,
+            saveUrl: cfg.get('url')
+        }).syncWithFileManager(fm, 'refresh').addListener('serverOk', function(js, html){
+            this.unsFiles(js.media.rm);
+            this.addFiles(js.media.add);
 
-                this.gotoFile(this.files.length - js.media.add.length);
-                fm.doAction('refresh');
-            });
-        },
-        click: function() {
-            var mm = MediaManager.getInstance(), files;
-            this.makeStek();
-            if (!mm.isSleepy && (files = this.getFiles())) {
-                mm.setFiles(files).showFile();
-            }
-        },
-        dblclick: function(tr) {
-            if (!sjs('td.dir', tr).length) {
-                this.doAction('insert');
-            }
+            this.gotoFile(this.files.length - js.media.add.length);
+            fm.doAction('refresh');
+        });
+    });
+
+    cfg.get('fm.listeners.click').push(function() {
+        var mm = MediaManager.getInstance(), files;
+        this.makeStek();
+        if (!mm.isSleepy && (files = this.getFiles())) {
+            mm.setFiles(files).showFile();
         }
-    }, cfg.get('fm.listeners')));
+    });
+
+    cfg.get('fm.listeners.dblclick').push(function(tr) {
+        if (!sjs('td.dir', tr).length) {
+            this.doAction('insert');
+        }
+    });
+
+    cfg.get('fm.listeners.ready').push(function (content) {
+        var scr = new sjs.ScrollableContent(content.parent(2), {
+            url: cfg.get('fm.actionUrl'),
+            data: {
+                per_page: cfg.get('fm.files_per_page'),
+                format: 'json'
+            }
+        });
+
+        var fm = this;
+        scr.onLoad(function (data) {
+            var response = data.js;
+            if (response.files && response.files.source) {
+                var files = response.files.source;
+                for (var i = 0, count = files.length; i < count; i++) {
+                    var file = files[i];
+
+                    file.type = file.is_dir ? 'dir' : file.type;
+                    fm.addRow(file);
+                }
+
+                if (files.length) {
+                    data.loader.page++;
+                }
+            }
+        });
+    });
 };

@@ -4,10 +4,11 @@
     "lang": "ru",
     "charset": "utf-8",
     "lib_dir": "%BASE_DIR%/lib/php",
-    "root":  "%DOCUMENT_ROOT%/uploads",
+    "root":  "%DOCUMENT_ROOT%/uploads/sjFilemanager",
+    "max_files_per_page": 100,
     //"allowed_actions": [],
     "uploader": {
-        "max_size": "%POST_MAX_SIZE%",
+        "max_size": "10000",
         "allowed_types": ["jpeg","jpg","rar","png","doc","docx","ppt","pptx","xls","xlsx","mdb","accdb", "swf", "zip", "rtf", "pdf", "psd", "mp3", "wma", "flv", "mp4"],
         "dynamic_name": true,
         "override": false,

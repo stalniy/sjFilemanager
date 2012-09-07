@@ -31,7 +31,9 @@ try {
     $fs = new iFilesystem();
     $result = $fs->setI18n($_SYSTEM['i18n'])
         ->readDir($realpath, '!r', array( // not recursive
-            'sort' => true
+            'sort'   => true,
+            'offset' => empty($_REQUEST['offset']) ? 0 : $_REQUEST['offset'],
+            'limit'  => $sjConfig['max_files_per_page']
         ));
 
     $data = array();
@@ -48,7 +50,6 @@ try {
         $data[] = array(
             'basename' => htmlentities($info['basename'], 2, $sjConfig['charset']),
             'name'  => htmlentities($filename, 2, $sjConfig['charset']),
-            'path'  => htmlentities($file, 2, $sjConfig['charset']),
             'size'  => $is_dir ? '' : $fs->formatSize($file) . 'b',
             'modify'=> $fs->formatDate(filemtime($file)),
             'type'  => $extension,
@@ -56,7 +57,8 @@ try {
         );
     }
 
-    $show_actions = isset($_REQUEST['show_actions']) && $_REQUEST['show_actions'];
+    $file_actions = array();
+    $show_actions = !empty($_REQUEST['show_actions']);
     if (!$_SYSTEM['is_ajax'] || $show_actions) {
         $file_actions = array(
             array('refresh',  '',                         $_SYSTEM['lang']['REFRESH']),
@@ -74,26 +76,31 @@ try {
         );
         ksort($file_actions);
         if (isset($sjConfig['allowed_actions'])) {
-            foreach ($file_actions as $k => &$action) {
+            foreach ($file_actions as $k => $action) {
                 if (!in_array($action[0], $sjConfig['allowed_actions'])) {
                     unset($file_actions[$k]);
                 }
             }
         }
-    } else {
-        $file_actions = null;
     }
 
-    $tmpl = !empty($_SYSTEM['template']) ? $_SYSTEM['template'] : 'dir';
-    $view = new iView($tmpl);
-
-    $view->setI18n($_SYSTEM['i18n'])->render(array(
+    $vars = array(
         'file_actions' => $file_actions,
         'cur_dir'      => htmlentities($cur_dir, 2, $sjConfig['charset']),
-        'source'       => $data,
-        'lang'         => $_SYSTEM['lang'],
-        'base_host'    => 'http://' . $_SERVER['HTTP_HOST']
-    ));
+        'source'       => $data
+    );
+
+    if (!empty($_REQUEST['format']) && $_REQUEST['format'] == 'json') {
+        $_RESULT['files'] = $vars;
+    } else {
+        $tmpl = !empty($_SYSTEM['template']) ? $_SYSTEM['template'] : 'dir';
+        $view = new iView($tmpl);
+
+        $view->setI18n($_SYSTEM['i18n'])->render(array_merge($vars, array(
+            'lang'      => $_SYSTEM['lang'],
+            'base_host' => 'http://' . $_SERVER['HTTP_HOST']
+        )));
+    }
 } catch (sjException $e) {
     if ($_SYSTEM['is_ajax']) {
         $_RESULT['response']['status'] = 'error';

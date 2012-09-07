@@ -45,7 +45,7 @@ function prepareConfig($file) {
     $config = strtr($config, $constants);
     return $config;
 }
-$sjConfig = json_decode(prepareConfig('../config.json'), true);
+$sjConfig = json_decode(prepareConfig('../../web/config.json'), true);
 if (!$sjConfig) {
     throw new RuntimeException("Invalid configuration file: " . json_last_error());
 }

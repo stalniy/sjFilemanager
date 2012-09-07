@@ -38,7 +38,7 @@ try {
         dirname(__FILE__) => '*base*',
         $sjConfig['root'] => '*root*'
     ));
-    if (!empty($_REQUEST['isMediaManager'])) {
+    if (!empty($_REQUEST['manager_type']) && $_REQUEST['manager_type'] == 'media') {
         include $sjConfig['lib_dir'] . '/ctrl/mm-action.php';
     } elseif ($action) {
         include $sjConfig['lib_dir'] . '/ctrl/fm-action.php';

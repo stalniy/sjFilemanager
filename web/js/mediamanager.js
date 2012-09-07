@@ -817,7 +817,7 @@ var MediaManager = new sjs.plugin({
         saveToolbar.removeClass('disabledBar');
     },
     _sendRequest: function(data) {
-        data.isMediaManager = true;
+        data['manager_type'] = 'media';
         this.notify('sendRequest', data);
 
         this.waiting(true);

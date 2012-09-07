@@ -28,7 +28,7 @@
     </tr>
     <?php endif ?>
     <?php if (!empty($source)): ?>
-    <?php foreach ($source as &$info): ?>
+    <?php foreach ($source as $info): ?>
     <tr>
         <td class="tcenter padding-left-0 width40"><input type="checkbox" name="files[]" value="<?php echo $info['basename'] ?>" /></td>
         <?php if ($info['is_dir']): ?>

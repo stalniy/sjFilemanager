@@ -287,23 +287,35 @@ class iFilesystem extends sfFilesystem implements sjFilesystem {
             $dirname = basename($path) . DIRECTORY_SEPARATOR;
         }
 
-        foreach ($dir_iterator as $file) {
-            $filename = $file->getFilename();
+        while ($dir_iterator->valid()) {
+            $filename = $dir_iterator->getFilename();
             if ($filename == '.'  || $filename == '..' || $skip_regex && preg_match($skip_regex, $filename)) {
+                $dir_iterator->next();
                 continue;
             }
-            $filename = $file->getPathname();
+            $filename = $dir_iterator->getPathname();
             if ($is_relative) {
                 $filename = str_replace($path, $dirname, $filename);
             }
             $files[] = $filename;
+            $dir_iterator->next();
         }
 
         if (isset($options['sort']) && $options['sort']) {
             $files = $this->orderBy($files, $options['sort']);
         }
 
-        return $files;
+        $offset = 0;
+        if (!empty($options['offset'])) {
+            $offset = (int)$options['offset'];
+        }
+
+        $limit = count($files);
+        if (!empty($options['limit'])) {
+            $limit = (int)$options['limit'];
+        }
+
+        return array_slice($files, $offset, $limit);
     }
 
     /**
@@ -1000,7 +1012,7 @@ class iFilemanager {
         $max_size = isset($options['max_size']) ? $options['max_size'] : false;
 
         if($max_size && (int)$this->getFullSize() > $max_size) {
-            throw new sjException($this->getI18n()->__('Uploaded files size greater then "%s"', $max_size), 1);
+            throw new sjException($this->getI18n()->__('Uploaded files size greater then "%s"', $this->fs->formatSize($max_size)), 1);
         }
 
         $dry_run = isset($options['dry_run']) && $options['dry_run'];

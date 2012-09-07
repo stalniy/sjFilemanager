@@ -35,34 +35,36 @@
                 return false;
             });
             sjs('#customCallback').onEvent('click', function(e){
-                sjFileManager.getInstance().addAction('insert', {
-                    dynamic: true,
-                    before: 'refresh',
-                    'for': 'files',
-                    'class': 'sjfm_files_insert'
-                }, function(){
-                    var data = this.getChecked(), i = data.length,
-                        wr = 0, url = this.rootUrl + this.getCurrentPath(),
-                        ins = sjs('#container');
+                sjs.when(sjFileManager.getInstance(), function (fm) {
+                    fm.addAction('insert', {
+                        dynamic: true,
+                        before: 'refresh',
+                        'for': 'files',
+                        'class': 'sjfm_files_insert'
+                    }, function(){
+                        var data = this.getChecked(), i = data.length,
+                            wr = 0, url = this.rootUrl + this.getCurrentPath(),
+                            ins = sjs('#container');
 
-                    if (!i) {
-                        return false;
-                    }
-
-                    while (i--) {
-                        var label = sjs(data[i].cells[1]).first()[0], html = '',
-                            file  = url + sjs(data[i]).find('input[type="checkbox"]:checked')[0].value.trim();
-                        wr = sjs('<div class="wrapps"></div>')
-
-                        if (/\s+(?:jpe?g|gif|png)\s+/i.test(' '+label.className+' ')) {
-                            html = '<img src="' + file + '" alt="'+file+'" style="max-width:100px" />';
-                        } else {
-                            html = '<span>'+file+'</span>';
+                        if (!i) {
+                            return false;
                         }
-                        html += '<br /><a href="#">delete</a><input type="hidden" name="files[]" value="'+file+'" />';
-                        ins.append(wr.html(html));
-                    }
-                    this.windows.main.close();
+
+                        while (i--) {
+                            var label = sjs(data[i].cells[1]).first()[0], html = '',
+                                file  = url + sjs(data[i]).find('input[type="checkbox"]:checked')[0].value.trim();
+                            wr = sjs('<div class="wrapps"></div>')
+
+                            if (/\s+(?:jpe?g|gif|png)\s+/i.test(' '+label.className+' ')) {
+                                html = '<img src="' + file + '" alt="'+file+'" style="max-width:100px" />';
+                            } else {
+                                html = '<span>'+file+'</span>';
+                            }
+                            html += '<br /><a href="#">delete</a><input type="hidden" name="files[]" value="'+file+'" />';
+                            ins.append(wr.html(html));
+                        }
+                        this.windows.main.close();
+                    });
                 });
                 return false;
             })
