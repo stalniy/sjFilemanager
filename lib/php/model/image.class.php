@@ -207,7 +207,7 @@ class image {
             }
 
             if (!is_dir($info['dirname'])) {
-                @mkdir($info['dirname'], true);
+                @mkdir($info['dirname'], 0777, true);
             }
 
             $name = $info['dirname'] . DIRECTORY_SEPARATOR . $info['filename'] . '.' . $type;
