@@ -98,8 +98,7 @@ try {
 
         $view->setI18n($_SYSTEM['i18n'])->render(array_merge($vars, array(
             'lang'      => $_SYSTEM['lang'],
-            'base_host' => 'http://' . $_SERVER['HTTP_HOST'],
-            'named_cfg' => isset($sjConfig['uploader']['named']) ? $sjConfig['uploader']['named'] : array()
+            'base_host' => 'http://' . $_SERVER['HTTP_HOST']
         )));
     }
 } catch (sjException $e) {

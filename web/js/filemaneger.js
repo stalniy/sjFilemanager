@@ -1055,12 +1055,14 @@ var Config = {
     }
 };
 
+
 Config.set('fm.listeners.ready', [])
   .set('fm.listeners.displayPath', [])
   .set('fm.listeners.serverError', [])
   .set('fm.listeners.serverOk', [])
   .set('fm.listeners.click', [])
-  .set('fm.listeners.dblclick', []);
+  .set('fm.listeners.dblclick', [])
+  .set('fm.listeners.uploader_ready', []);
 
 sjFileManager.configure = function (options) {
     if (options.i18n) {
@@ -1247,7 +1249,7 @@ sjFileManager.create = function(options) {
     cfg.get('fm.listeners.ready').push(function() {
         var fm = this, uploader = sjFileManager.getUploader(
             cfg.get('url'),
-            cfg.get('fm.upoader')
+            cfg.get('fm.uploader')
         );
         this.setUploader(uploader);
 
@@ -1311,4 +1313,5 @@ sjFileManager.create = function(options) {
     cfg.set('fm.liseners.opendir', []).get('fm.liseners.opendir').push(function () {
         scr.clearCache();
     });
+    return cfg;
 };

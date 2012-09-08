@@ -152,8 +152,16 @@ try {
                 throw new sjException($_SYSTEM['i18n']->__('Unable to process request'));
             }
 
+            $cfgName = empty($_REQUEST['use_cfg']) ? null : $_REQUEST['use_cfg'];
+            $cfg = $sjConfig['uploader'];
+
+            if (isset($cfg['named'][$cfgName])) {
+                $cfg['uploader']['image']  = $cfg['named'][$cfgName]['image'];
+                $cfg['uploader']['thumbs'] = $cfg['named'][$cfgName]['thumbs'];
+            }
+
             $fm->import($_FILES)
-                ->paste($path, $sjConfig['uploader']);
+                ->paste($path, $cfg);
         break;
     }
 
