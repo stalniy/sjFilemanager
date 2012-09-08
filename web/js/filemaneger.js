@@ -14,10 +14,11 @@
  * @version    SVN: $Id$
  */
 (function() {
+
 sjs.globals.fm={};
 var sjFileManager = new sjs.plugin({
-    __construct:function(content, cfg, listeners){
-        this.create(content, cfg, listeners)
+    __construct: function(content, cfg, listeners) {
+        this._create(content, cfg, listeners)
     },
     __destruct:function(){
         delete sjs.globals.fm[this.id];
@@ -29,7 +30,14 @@ var sjFileManager = new sjs.plugin({
         }
         this.windows=this.requestData=this.events=this.lastSelected=this.id=null;
     },
-    create: function (content, cfg, events) {
+    _request: function (url, data) {
+        var waiter = new sjs.promise();
+        sjs.query(url, data, function (js, html) {
+            waiter.resolve({js: js, html: html});
+        }, true);
+        return waiter;
+    },
+    _create: function (content, cfg, events) {
         this.id         = content[0].sjsEventId;
         this.actionUrl  = (cfg.actionUrl || '').replace(/[\\\/]+$/, '') + '/';
         this.dirUrl     = cfg.dirUrl || this.actionUrl;
@@ -707,6 +715,7 @@ var sjFileManager = new sjs.plugin({
 
         postParams[$_Request.prototype.session_name] = $_Request.prototype.getSession();
         if (mn) {
+            mn.notify('uploader_ready', postParams);
             mn.uploader.setPostParams(postParams);
         }
     },
@@ -738,16 +747,15 @@ var sjFileManager = new sjs.plugin({
         return this.windows[name] = w;
     },
     setUploader: function(upl) {
-        var btn = this.actionsBlock.find('*[name="upload"]');
         if (upl) {
             this.uploader = upl;
             upl.__file_manager_id = this.id;
             upl.getFileManager = function() {
                 return sjs.globals.fm[this.__file_manager_id];
             };
-            btn.show();
+            this.enable('upload')
         } else {
-            btn.hide();
+            this.disable('upload')
         }
         return this;
     },
@@ -1300,7 +1308,7 @@ sjFileManager.create = function(options) {
         });
     });
 
-    cfg.set('fm.liseners.refresh', []).get('fm.liseners.refresh').push(function () {
+    cfg.set('fm.liseners.opendir', []).get('fm.liseners.opendir').push(function () {
         scr.clearCache();
     });
 };

@@ -142,6 +142,14 @@ interface sjFilesystem {
      * @return sjI18nInterface
      */
     public function getI18n();
+
+    /**
+     * Format size value in human readable format
+     *
+     * @param int $size
+     * @return string
+     */
+    public function formatSizeValue($size);
 }
 
 /**
@@ -547,7 +555,7 @@ class iFilesystem extends sfFilesystem implements sjFilesystem {
     }
 
     /**
-     * Format size in human readable format
+     * Format size of file/folder in human readable format
      *
      * @param string $file  path to file
      * @return string
@@ -558,6 +566,17 @@ class iFilesystem extends sfFilesystem implements sjFilesystem {
         }
 
         $size = is_dir($file) ? $this->dirsize($file) : filesize($file);
+
+        return $this->formatSizeValue($size);
+    }
+
+    /**
+     * Format size value in human readable format
+     *
+     * @param int $size
+     * @return string
+     */
+    public function formatSizeValue($size) {
         $type = '';
         if($size > 1024){
             $size /= 1024;
@@ -580,7 +599,6 @@ class iFilesystem extends sfFilesystem implements sjFilesystem {
         }
 
         $size = (float)number_format($size, 2);
-
         return $size . ' ' . $type;
     }
 
@@ -1012,7 +1030,7 @@ class iFilemanager {
         $max_size = isset($options['max_size']) ? $options['max_size'] : false;
 
         if($max_size && (int)$this->getFullSize() > $max_size) {
-            throw new sjException($this->getI18n()->__('Uploaded files size greater then "%s"', $this->fs->formatSize($max_size)), 1);
+            throw new sjException($this->getI18n()->__('Uploaded files size greater then "%s"', $this->fs->formatSizeValue($max_size)), 1);
         }
 
         $dry_run = isset($options['dry_run']) && $options['dry_run'];

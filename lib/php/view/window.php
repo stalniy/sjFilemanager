@@ -46,20 +46,18 @@
     </div>
 </form></div>
 <div id="sjUploadTmpl" class="hidden">
-    <div class="upload-form">
-        <form name="swf_upload" class="sjs_form" action="" method="post" enctype="multipart/form-data">
-            <div class="fieldset flash label" id="sjFmUploadProgress">
-                <span class="legend"><?php echo $lang['UPLOAD_FILES'] ?></span>
-            </div>
-            <div id="divMovieContainer" style="margin:3px">
-                <span id="sjFmButtonPlaceHolder"></span>
-                <?php $view->display('button', array(
-                    'type'  => 'button',
-                    'label' => $lang['START_UPLOAD'],
-                    'btn_name' => 'upload'
-                )) ?>
-            </div>
-        </form>
+    <div class="upload-form sjs_form">
+        <div class="fieldset flash label" id="sjFmUploadProgress">
+            <span class="legend"><?php echo $lang['UPLOAD_FILES'] ?></span>
+        </div>
+        <div id="divMovieContainer" style="margin:5px 10px">
+            <span id="sjFmButtonPlaceHolder"></span>
+            <?php $view->display('button', array(
+                'type'  => 'button',
+                'label' => $lang['START_UPLOAD'],
+                'btn_name' => 'upload'
+            )) ?>
+        </div>
     </div>
 </div>
 <?php $view->strip_end() ?>
