@@ -647,7 +647,7 @@ class image {
         $info = $this->getPathInfo($path);
         $thumbs = array();
 
-        foreach ($options as $prefix => &$config) {
+        foreach ($options as $prefix => $config) {
             $tmb = clone $this;
             $tmb->override = $override;
             if (isset($config['width']) && isset($config['height']) && isset($config['type'])) {

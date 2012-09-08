@@ -488,7 +488,7 @@ class iFilesystem extends sfFilesystem implements sjFilesystem {
         }
 
         $image = false;
-        if (isset($options['thumbs']) || isset($options['image'])) {
+        if (isset($options['thumbs']) || isset($options['images'])) {
             $image = $this->createImage($originFile, $options['override']);
         }
 
@@ -529,8 +529,8 @@ class iFilesystem extends sfFilesystem implements sjFilesystem {
      * @param array      $options (see copy() method)
      */
     protected function saveImage($image, $targetFile, array $options = array()) {
-        if (isset($options['image']) && is_array($options['image'])) {
-            $targetFile = $image->createThumbs($targetFile, array('' => $options['image']));
+        if (!empty($options['images']) && is_array($options['images'])) {
+            $targetFile = $image->createThumbs($targetFile, array('' => $options['images']));
             if ($targetFile) {
                 $targetFile = current($targetFile);
             }
@@ -540,10 +540,10 @@ class iFilesystem extends sfFilesystem implements sjFilesystem {
         }
         $thumbs = array();
         if ($targetFile) {
-            if (isset($options['thumbs']) && is_array($options['thumbs'])) {
+            if (!empty($options['thumbs']) && is_array($options['thumbs'])) {
                 $thumbs = $image->createThumbs($targetFile, $options['thumbs']);
                 if (!$thumbs) {
-                    throw new sjException($this->getI18n()->__('Can not create thumbs for "%s"', $originFile), 12);
+                    throw new sjException($this->getI18n()->__('Can not create thumbs for "%s"', $targetFile), 12);
                 }
             }
         } else {

@@ -722,13 +722,13 @@ var sjFileManager = new sjs.plugin({
     onUploadSuccess: function(file, serverData){
         if (!this.uploader.hasErrors && this.uploader.getStats().files_queued == 0) {
             var w = this.doAction('refresh').getWindow('upload');
-            (function(){ w.close() }).delay(.9)
+            (function(){ w.close() }).delay(.5)
         }
     },
     getWindow: function(name, title) {
         var w = this.windows[name];
         if (w) {
-            w.show();
+            w.show().position();
             return w;
         }
 

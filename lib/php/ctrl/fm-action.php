@@ -156,8 +156,8 @@ try {
             $cfg = $sjConfig['uploader'];
 
             if (isset($cfg['named'][$cfgName])) {
-                $cfg['uploader']['image']  = $cfg['named'][$cfgName]['image'];
-                $cfg['uploader']['thumbs'] = $cfg['named'][$cfgName]['thumbs'];
+                $cfg['images'] = $cfg['named'][$cfgName]['images'];
+                $cfg['thumbs'] = $cfg['named'][$cfgName]['thumbs'];
             }
 
             $fm->import($_FILES)
