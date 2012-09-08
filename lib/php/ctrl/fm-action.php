@@ -10,6 +10,7 @@ if (!defined('SJ_IS_ADMIN')) {
     header('Location: http://www.google.com');
     exit;
 }
+require $sjConfig['lib_dir'] . '/model/image.class.php';
 
 $path   = trim($_REQUEST['path']);
 $action = $_REQUEST['action'];
