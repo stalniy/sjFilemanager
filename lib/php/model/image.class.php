@@ -206,6 +206,10 @@ class image {
                 $type = $info['extension'];
             }
 
+            if (!is_dir($info['dirname'])) {
+                @mkdir($info['dirname'], true);
+            }
+
             $name = $info['dirname'] . DIRECTORY_SEPARATOR . $info['filename'] . '.' . $type;
             $name = $this->prepareName($name);
             if ($type == 'png') {
@@ -662,7 +666,7 @@ class image {
                 $tmb->resize($config['width'], $config['height'], 'crop', $cfg);
             }
             $tmbname = $info['dirname'] . DIRECTORY_SEPARATOR . $prefix . $info['basename'];
-            if (!$tmb->save($tmbname)) {
+            if (!$tmb->save($tmbname, empty($config['quality']) ? 65 : $config['quality'])) {
                 return false;
             }
             $thumbs[] = $tmbname;

@@ -510,7 +510,7 @@ class iFilesystem extends sfFilesystem implements sjFilesystem {
      * @return bool|$imageClass false or instance of self::$imageClass
      */
     public function createImage($path, $override = true) {
-        if (!class_exists(self::$imageClass)) {
+        if (!class_exists(self::$imageClass, false)) {
             return false;
         }
         $image = self::$imageClass;
