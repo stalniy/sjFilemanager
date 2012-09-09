@@ -50,7 +50,7 @@
         <div class="fieldset flash label" id="sjFmUploadProgress">
             <span class="legend"><?php echo $lang['UPLOAD_FILES'] ?></span>
         </div>
-        <div id="divMovieContainer" style="margin:5px 10px">
+        <div id="divMovieContainer" style="margin:0 5px;padding:10px 0">
             <span id="sjFmButtonPlaceHolder"></span>
             <?php $view->display('button', array(
                 'type'  => 'button',

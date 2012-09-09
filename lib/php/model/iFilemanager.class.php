@@ -1064,7 +1064,7 @@ class iFilemanager {
                 }
             }
 
-            $extension = $this->fs->getPathInfo($filename, PATHINFO_EXTENSION);
+            $extension = strtolower($this->fs->getPathInfo($filename, PATHINFO_EXTENSION));
             if ($allowed_types && !in_array($extension, $allowed_types)) {
                 if ($dry_run) {
                     continue;
