@@ -1830,6 +1830,13 @@ sjs.extend({
         }
 
         return r
+    },
+    createChunk: function (elms) {
+        var wrap = document.createDocumentFragment();
+        for (var i = 0, l = elms.length; i < l; i++) {
+            wrap.appendChild(elms[i]);
+        }
+        return wrap;
     }
 });
 
@@ -1888,7 +1895,6 @@ sjs.ScrollableContent = new sjs.plugin({
         var self = this;
         this.cfg = {};
         this.page   = options.page || 1;
-        this.per_page = options.per_page || 15;
         this.cfg.gt = options.gt || 3;
         this.cfg.data = options.data || {};
         this.cfg.url  = options.url;
@@ -1899,19 +1905,20 @@ sjs.ScrollableContent = new sjs.plugin({
         };
 
         sjs(content).mousewheel(function() {
-            if (this.scrollHeight - this.scrollTop <= this.scrollHeight / self.cfg.gt) {
+            if (this.scrollHeight - this.scrollTop <= this.scrollHeight / self.cfg.gt
+                || this.offsetHeight + this.scrollTop >= this.scrollHeight
+            ) {
                 self.load()
             }
         });
     },
     load: function (force) {
         var self = this, key = this.page;
-
         if (!force && this.loaded[key]) {
             return false;
         }
 
-        this.cfg.data.offset = this.per_page * this.page + 1;
+        this.cfg.data.page = this.page;
         self.events.data.resolve(this.cfg.data);
 
         this.loaded[key] = true;

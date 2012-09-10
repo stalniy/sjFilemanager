@@ -292,7 +292,7 @@ var sjFileManager = new sjs.plugin({
                 tdClass  = 'dir';
             break;
             default:
-                lblClass = 'default ' + type;
+                lblClass = 'default ' + String(type).toLowerCase();
                 tdClass  = 'file';
             break;
         }
@@ -1285,7 +1285,7 @@ sjFileManager.create = function(options) {
     cfg.get('fm.listeners.ready').push(function (content) {
         var scr = new sjs.ScrollableContent(content.parent(2), {
             url: cfg.get('fm.actionUrl'),
-            per_page: cfg.get('fm.files_per_page'),
+            page: 2,
             data: { format: 'json' }
         });
 

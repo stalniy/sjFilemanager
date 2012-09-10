@@ -28,16 +28,25 @@ if(!$realpath || $realLength < $rootLength){ // hack attemt
 // %End validate $dirpath
 
 try {
+    $page   = 1;
+    $limit  = $sjConfig['max_files_per_page'];
+    $offset = 0;
+
+    if (!empty($_REQUEST['page']) && is_numeric($_REQUEST['page']) && $_REQUEST['page'] > 1) {
+        $page = (int)$_REQUEST['page'];
+        $offset = ($page - 1) * $limit + 1;
+    }
+
     $fs = new iFilesystem();
     $result = $fs->setI18n($_SYSTEM['i18n'])
         ->readDir($realpath, '!r', array( // not recursive
             'sort'   => true,
-            'offset' => empty($_REQUEST['offset']) ? 0 : $_REQUEST['offset'],
-            'limit'  => $sjConfig['max_files_per_page']
+            'offset' => $offset,
+            'limit'  => $limit
         ));
 
     $data = array();
-    foreach ($result as &$file) {
+    foreach ($result as $file) {
         $info = $fs->getPathInfo($file);
         $is_dir = is_dir($file);
         if ($info['basename'][0] == '.') {
