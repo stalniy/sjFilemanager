@@ -44,7 +44,7 @@
 
 <script type="text/html" id="sj_filemanager_files_list_row">
     <tr>
-        <td class="tcenter padding-left-0 width40"><input type="checkbox" name="files[]" value="<?= $.file.basename ?>" /></td>
+        <td class="tcenter padding-left-0 width40"><input type="checkbox" name="files[]" value="<?= $.file.basename || '' ?>" /></td>
         <? if ($.file.is_dir) { ?>
         <td class="dir list-current"><label class="folder"><?= $.file.name ?></label></td>
         <td class="width70"><?= $.i18n('Folder') ?></td>
@@ -52,7 +52,7 @@
         <td class="file list-current"><label class="default <?= $.file.type.toLowerCase() ?>"><?= $.file.name ?></label></td>
         <td class="width70"><?= $.file.type.toLowerCase() ?></td>
         <? } ?>
-        <td><?= $.file.size ?></td>
-        <td class="width110"><?= $.file.modified_at ?></td>
+        <td><?= $.file.size || '' ?></td>
+        <td class="width110"><?= $.file.modified_at || '' ?></td>
     </tr>
 </script>

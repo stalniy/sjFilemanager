@@ -67,8 +67,8 @@ try {
     }
 
     $_RESULT['files'] = array(
-        'cur_dir'      => $cur_dir,
-        'source'       => $data
+        'cur_dir' => $cur_dir ? $cur_dir : '',
+        'source'  => $data
     );
 } catch (sjException $e) {
     if ($_SYSTEM['is_ajax']) {

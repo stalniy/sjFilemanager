@@ -1736,16 +1736,24 @@ sjs.extend({
         return sjs.getText(obj)
     },
     makeHTML:function(html,root){
-        var div=document.createElement('div'),i,tmp;
+        var w=sjs.newTag('div'),i,tmp;
 
-        div.innerHTML=html;
+        html = html.replace(/[\r\t\n]/g, " ");
+        if (/^\s*<tr[^>]*>/i.test(html)) {
+            html = '<table><tbody>' + sjs.trim(html) + '</tbody></table>';
+            w.innerHTML=html;
+            w=w.firstChild.firstChild;
+        } else {
+            w.innerHTML=html;
+        }
+
         if(root&&root.nodeName){
-            tmp=div.childNodes; i=0;
+            tmp=w.childNodes; i=0;
             while(tmp[i]) root.appendChild(tmp[i++]);
             tmp=null
         }
 
-        return div.childNodes
+        return w.childNodes
     },
     getBrowserWindowScrolls:function(){
         var scroll = {top:0, left:0};
