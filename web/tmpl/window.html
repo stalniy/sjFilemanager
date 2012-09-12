@@ -8,15 +8,10 @@
  */
 -->
 <script type="text/html" id="sj_filemanager_body">
-  <div id="sjWrapper">
+  <div class="sj-fm-wrapper">
       <form class="sjs_form" name="sjs_form" action="" method="post" enctype="multipart/form-data">
-          <div class="filemanagertop" id="sjFmActions" title="<?= $.cur_dir ?>">
-              <span class="loading somedo"></span>
-              <? for (var i = 0, c = $.file_actions.length; i < c; i++) { var item = $.file_actions[i]; ?>
-              <a href="#" class="sjfm_files_<?= item[0] + ' ' + item[1] ?>" title="<?= item[2]?>" name="<?= item[0] ?>">&nbsp;</a>
-              <? } ?>
-          </div>
-          <div id="sjFilemanager"><?= render('sj_filemanager_dir', $) ?></div>
+          <div class="sj-fm-panel filemanagertop" title="<?= $.cur_dir ?>"></div>
+          <div class="sj-fm-body"><?= render('sj_filemanager_files_list', $) ?></div>
       </form>
   </div>
 </script>

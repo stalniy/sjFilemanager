@@ -1844,8 +1844,38 @@ sjs.when = function (promise, onOk, onErr) {
     if (promise.resolve) {
         return promise.resolve(onOk).reject(onErr);
     } else {
-        return onOk.call(promise, promise);
+        return onOk(promise);
     }
+};
+
+sjs.promiseAll = function () {
+    var isRejected = false, isQueued = false, count = arguments.length,
+        p = new sjs.promise(), result = [];
+
+    var onErr = function () {
+            if (!isRejected) {
+                p.reject(arguments);
+                isRejected = true;
+            }
+        },
+        onOk = function () {
+            result[this.__index__] = sjs.toList(arguments);
+            if (isQueued && !isRejected && --count == 0) {
+                var args = [];
+                for (var i = 0, c = result.length; i < c; i++) {
+                    args = args.concat(result[i]);
+                }
+                p.resolve(args);
+                all = null;
+            }
+        };
+
+    for (var i = 0, c = count; i < c; i++) {
+        arguments[i].__index__ = i;
+        sjs.when(arguments[i], onOk, onErr);
+    }
+    isQueued = true;
+    return p;
 };
 
 sjs.promise = function () {
@@ -1856,15 +1886,15 @@ sjs.promise = function () {
 sjs.promise.prototype = {
     _call: function (type, object) {
         var fns = this.callbacks[type], i = fns.length;
-        if (!object.length && !object.push) {
+        if (object && !object.push) {
             object = [object];
         }
         while (i--) {
             fns[i].apply(this, object);
         }
     },
-    resolve: function (obj, call) {
-        if (!call && sjs.isFn(obj)) {
+    resolve: function (obj) {
+        if (sjs.isFn(obj)) {
             this.callbacks.ok.push(obj);
         } else {
             this.state = true;
@@ -1872,8 +1902,8 @@ sjs.promise.prototype = {
         }
         return this;
     },
-    reject: function (obj, call) {
-        if (!call && sjs.isFn(obj)) {
+    reject: function (obj) {
+        if (sjs.isFn(obj)) {
             this.callbacks.err.push(obj);
         } else {
             this.state = false;

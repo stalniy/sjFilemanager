@@ -453,6 +453,9 @@ var sjWindow = new sjs.plugin({
     },
     find: function(sel){
         return sjs(sel, this.window);
+    },
+    getBody: function () {
+        return this.find('.sjs_wcontent');
     }
 });
 sjWindow.count=0;

@@ -185,6 +185,14 @@ var $_Request = new sjs.plugin({
         if (t.caching && t.load) {
            $_Request.CACHE[t.load.hash] = [text, js];
         }
+        if (js == null && this.getResponseHeader('Content-Type') == 'application/json') {
+            var txt = text.replace(/^\s*(?:\/\/|#).+\s/gm, '');
+            if (window.JSON) {
+                js = window.JSON.parse(txt);
+            } else {
+                js = (new Function("return " + txt))();
+            }
+        }
         t.responseText=text;
         t.responseJS = js;
         if (js !== null) {
@@ -197,7 +205,7 @@ var $_Request = new sjs.plugin({
         t._changeReadyState(2);
         t._changeReadyState(3);
         t._changeReadyState(4);
-        t._cleanup();t=null
+        t._cleanup();
     },
     _l:function(args) {
         var i = 0, p = 0, msg = this._errors[args[0]];
@@ -357,11 +365,11 @@ $_Request.LOADERS={
                 try {
                     // Prepare generator function & catch syntax errors on this stage.
                     if(sjs.trim(req.responseText).charAt(0)!='{'||req.withoutBackEnd){
+                        var d = {js:tr.responseXML,text:req.responseText};
                         $_Request._tmp=function(id){
-                            var d=arguments.callee.data; arguments.callee.data=null; d.id=id;
-                            $_Request.dataReady(d)
+                            d.id=id;
+                            $_Request.dataReady(d);
                         };
-                        $_Request._tmp.data={js:tr.responseXML,text:req.responseText}
                     }else{
                         $_Request._tmp=new Function('id','var d='+req.responseText+'; d.id = id; $_Request.dataReady(d)')
                     }

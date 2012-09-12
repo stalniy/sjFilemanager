@@ -33,7 +33,7 @@ html, body, body a, body input, a:active, a:focus, button {
     padding-bottom: 23px;
 }
 
-#sjWrapper {
+.sj-fm-wrapper {
     text-align:left;
     font-size: 12px;
     font-family: Arial, Verdana, Helvetica, sans-serif;

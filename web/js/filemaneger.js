@@ -17,14 +17,14 @@
 
 sjs.globals.fm={};
 var sjFileManager = new sjs.plugin({
-    __construct: function(content, cfg, listeners) {
-        var self = this;
-        this.view  = new sjs.View({ baseUrl: cfg.baseTemplateUrl });
-        this.files = cfg.files || [];
+    __construct: function(cfg, listeners) {
+        this._init(cfg, listeners);
 
-        sjs.when(this.view.getAll('tmpl.window.sj_filemanager_body', 'tmpl.dir.sj_filemanager_files_list'), function (body) {
-            body.render(cfg.files);
-            self._create(content, cfg, listeners)
+        var self = this;
+        sjs.when(this.view.getAll('window.body', 'dir.files_list'),function (render) {
+            self.files.i18n = sjFileManager.i18n;
+            var content = sjs(cfg.container).html(render(self.files)).find('div.sj-fm-body');
+            self._attachTo(content);
         });
     },
     __destruct:function(){
@@ -38,62 +38,74 @@ var sjFileManager = new sjs.plugin({
         this.windows=this.requestData=this.events=this.lastSelected=this.id=null;
     },
     _request: function (url, data) {
-        var waiter = new sjs.promise(), id = this.id;
+        var waiter = new sjs.promise(), self = this;
         sjs.query(url, data, function (js, html) {
-            var mn = sjs.globals.fm[id];
             if(js && js.response && js.response.status == 'error'){
-                waiter.reject([js, html, mn]);
-                mn.notify('serverError', js, html);
+                waiter.reject([js, html, self]);
+                self.notify('serverError', js, html);
             } else {
-                waiter.resolve([js, html, mn]);
+                self.notify('serverOk', js, html);
+                waiter.resolve([js, html, self]);
             }
         }, true);
         return waiter;
     },
-    _create: function (content, cfg, events) {
-        this.id         = content[0].sjsEventId;
-        this.actionUrl  = (cfg.actionUrl || '').replace(/[\\\/]+$/, '') + '/';
-        this.dirUrl     = cfg.dirUrl || this.actionUrl;
-        this.rootUrl    = (cfg.rootUrl || '').replace(/[\\\/]+$/, '');
-        this.events     = events || {};
-        this.dirStek    = null;
-        this.fileStek   = null;
-        this.windows    = {};
-        this.requestData  = {};
-        this.lastSelected = null;
-        this.actionsBlock = sjs(cfg.actionSel || '#sjFmActions');
+    _init: function (cfg, listeners) {
+        this.files   = cfg.files;
+        this.windows = {};
+        this.events  = listeners || {};
+        this.actions = [];
+        this.dirStek  = null;
+        this.fileStek = null;
+        this.lastSelected   = null;
         this.hasStekChanges = false;
-        this.rowTemplate  = '';
+        this.requestData  = {};
 
-        this.findLastSelected(content.first()[0]);
-        this.setUploader(cfg.uploader);
-        this.setRowTemplate(cfg.rowTemplate);
-        this.initialize(content);
+        this.actionUrl = (this.actionUrl || '').replace(/\/+$/, '')
+        this.rootUrl   = (cfg.rootUrl || '').replace(/\/+$/, '');
+
+        this.view = new sjs.View({
+            baseUrl:  cfg.templateUrl,
+            idPrefix: 'sj_filemanager_'
+        });
+
+        if (!cfg.container) {
+            throw "'container' setting is missed";
+        }
+    },
+    _attachTo: function (content) {
+        this.id = content[0].sjsEventId;
+        this.actionsBlock = content.prev();
+
         sjs.globals.fm[this.id]=this;
 
         this._createActions();
+        this.findLastSelected(content.first()[0]);
+        this.initialize(content);
+
         this.notify('ready', content);
     },
     _createActions: function () {
         var actions = [
-            ['refresh'   { title: sjFileManager.i18n('Refresh') }],
-            ['createDir' { title: sjFileManager.i18n('Create Folder')}],
-            ['cut'       { title: sjFileManager.i18n("Cut"), dynamic: true, 'for': 'files'}],
-            ['copy'      { title: sjFileManager.i18n("Copy"), dynamic: true, 'for': 'dirs'}],
-            ['remove'    { title: sjFileManager.i18n("Remove"), dynamic: true }],
-            ['paste'     { title: sjFileManager.i18n("Paste"),  dynamic: true, enabled: false }],
-            ['rename'    { title: sjFileManager.i18n("Rename"),  dynamic: true }],
-            ['perms'     { title: sjFileManager.i18n("Permissions"),  dynamic: true }],
-            ['upload'    { title: sjFileManager.i18n("Upload File(s)") }],
-            ['download'  { title: sjFileManager.i18n("Download File(s) as Zip Archive") }],
-            ['dirInfo'   { title: sjFileManager.i18n("Information about File(s)") }],
-            ['transform' { title: sjFileManager.i18n("Fix Panel") }]
-        ];
+            ['refresh',   { title: sjFileManager.i18n('Refresh') }],
+            ['createDir', { title: sjFileManager.i18n('Create Folder')}],
+            ['cut',       { title: sjFileManager.i18n("Cut"), dynamic: true, 'for': 'files'}],
+            ['copy',      { title: sjFileManager.i18n("Copy"), dynamic: true, 'for': 'dirs'}],
+            ['remove',    { title: sjFileManager.i18n("Remove"), dynamic: true }],
+            ['paste',     { title: sjFileManager.i18n("Paste"),  dynamic: true, enabled: false }],
+            ['rename',    { title: sjFileManager.i18n("Rename"),  dynamic: true }],
+            ['perms',     { title: sjFileManager.i18n("Permissions"),  dynamic: true }],
+            ['upload',    { title: sjFileManager.i18n("Upload File(s)") }],
+            ['download',  { title: sjFileManager.i18n("Download File(s) as Zip Archive") }],
+            ['dirInfo',   { title: sjFileManager.i18n("Information about File(s)") }],
+            ['transform', { title: sjFileManager.i18n("Fix Panel") }]
+        ].concat(this.actions);
 
         for (var i = 0, c = actions.length; i < c; i++) {
             var action = actions[i];
             this.addAction(action[0], action[1]);
         }
+        this.actions = [];
     },
     findLastSelected:function(tbl){
         tbl=tbl.tBodies[0];
@@ -429,7 +441,7 @@ var sjFileManager = new sjs.plugin({
         return this;
     },
     notify: function(eventName) {
-        if (this.events[eventName] && this.events[eventName].push) {
+        if (this.id && this.events[eventName] && this.events[eventName].push) {
             var args = sjs.toList(arguments), fns = this.events[eventName],
                 i = fns.length;
             args.shift();
@@ -486,10 +498,8 @@ var sjFileManager = new sjs.plugin({
     },
     addAction: function(name, options, callback) {
         var btn = this.getActionButton(name);
-        if (!btn.item(0)) {
-            var attrs = { 'class': [] };
-
-            attrs.name = name;
+        if (btn && !btn.item(0)) {
+            var attrs = { 'class': [], name: name };
 
             switch (options['for']) {
                 case 'files':
@@ -516,6 +526,7 @@ var sjFileManager = new sjs.plugin({
                 attrs['title'] = options.title;
             }
 
+            attrs['class'].push('sjfm_files_' + name);
             attrs['class'] = attrs['class'].join(' ');
             btn = sjs('<a href="#">&nbsp;</a>').attr(attrs);
 
@@ -526,14 +537,17 @@ var sjFileManager = new sjs.plugin({
             } else {
                 btn.appendTo(this.actionsBlock);
             }
+        } else {
+            this.actions.push([name, options]);
         }
+
         if (sjs.isFn(callback)) {
             this[name + 'Action'] = callback;
         }
         return this;
     },
     getActionButton: function(name) {
-        return this.actionsBlock.find('a[name="' + name +'"]')
+        return this.actionsBlock && this.actionsBlock.find('a[name="' + name +'"]')
     },
     prepareActions: function(){
         this.makeStek();
@@ -1085,14 +1099,11 @@ var Config = {
     }
 };
 
-
-Config.set('fm.listeners.ready', [])
-  .set('fm.listeners.displayPath', [])
-  .set('fm.listeners.serverError', [])
-  .set('fm.listeners.serverOk', [])
-  .set('fm.listeners.click', [])
-  .set('fm.listeners.dblclick', [])
-  .set('fm.listeners.uploader_ready', []);
+var events = ['ready', 'displayPath', 'serverError', 'serverOk', 'click', 'dblclick', 'uploader_ready'],
+    i = events.length;
+while(i--) {
+    Config.set('fm.listeners.' + events[i], []);
+}
 
 sjFileManager.configure = function (options) {
     if (options.i18n) {
@@ -1101,14 +1112,14 @@ sjFileManager.configure = function (options) {
 
     var url = sjs.trim(options.url);
     if (options.opendir) {
-        url += (url.indexOf('?') == -1 '?' : '&') + 'dirpath=' + options.opendir;
+        url += (url.indexOf('?') == -1 ? '?' : '&') + 'dirpath=' + options.opendir;
     }
 
     Config.set('url', url)
         .set('fm.container', options.container, '#sjFilemanager')
         .set('fm.rootUrl', options.root)
         .set('fm.actionUrl', sjs.trim(options.url))
-        .set('fm.baseTemplateUrl', options.baseTemplateUrl);
+        .set('fm.templateUrl', options.tmplUrl);
 
     options.window = options.window || {};
     Config.set('window.tmpl', '#sjWindowTmpl')
@@ -1134,15 +1145,13 @@ sjFileManager.getInstance = function() {
     }
 
     var w = new sjWindow(Config.get('url'), Config.get('window'), function(content, js, html) {
-
-        var node = sjs(Config.get('fm.container'));
-
-        if (!node.length) {
-            Instance.reject();
-            throw "Config 'fm.container' does not match any DOM element. Maybe the problem with server response";
+        if (!js.files) {
+            Instance.reject([js, html]);
+            throw "Invalid server response";
         }
 
-        var fm = new sjFileManager(node, Config.get('fm'), Config.get('fm.listeners'));
+        Config.set('fm.files', js.files).set('fm.container', this.getBody());
+        var fm = new sjFileManager(Config.get('fm'), Config.get('fm.listeners'));
         fm.windows.main = this;
         Config.clear();
         Instance.resolve(fm);
@@ -1278,13 +1287,13 @@ sjFileManager.create = function(options) {
 
     var cfg = sjFileManager.configure(options);
     cfg.get('fm.listeners.ready').push(function() {
-        var fm = this, uploader = sjFileManager.getUploader(
-            cfg.get('url'),
+        console.log(cfg.get('fm'))
+        this.setUploader(sjFileManager.getUploader(
+            cfg.get('fm.actionUrl'),
             cfg.get('fm.uploader')
-        );
-        this.setUploader(uploader);
+        ));
 
-        var c = sjs('#sjMediamanager').insertBefore('#sjWrapper')
+        var fm = this, c = sjs('#sjMediamanager').insertBefore('#sjWrapper')
             .find('.sjMediaWrapper');
         MediaManager.getInstance(c, {
             panel: '.sjMediaPanel',

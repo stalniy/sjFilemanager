@@ -30,7 +30,8 @@
                     .replace(/[\r\t\n]/g, " ")
                     .split("<\?").join("\t")
                     .replace(/((^|\?>)[^\t]*)'/g, "$1\r")
-                    .replace(/\t=(.*?)\?>/g, "',escapeHtml($1),'")
+                    .replace(/\t=\s*(\$\..*?)\?>/g, "',escapeHtml($1),'")
+                    .replace(/\t=(.*?)\?>/g, "',$1,'")
                     .split("\t").join("');")
                     .split("\?>").join("p.push('")
                     .split("\r").join("\\'")
@@ -43,14 +44,11 @@
         return data ? fn( data ) : fn;
     };
 
-    $.tmpl.render = function () {
-        return tmpl.apply(this, arguments);
-    };
-
     $.View = function(options) {
-        this.format  = options.format  || 'html';
-        this.baseUrl = options.baseUrl || '';
-        this.engine  = options.engine  || tmpl;
+        this.format  = options.format   || 'html';
+        this.baseUrl = (options.baseUrl || '').replace(/\/+$/, '');
+        this.engine  = options.engine   || $.tmpl;
+        this.idPrefix= options.idPrefix || '';
 
         if (this.baseUrl) {
             this.baseUrl = this.baseUrl.replace(/\/$/, '');
@@ -60,7 +58,7 @@
         _parseId: function (id) {
             id = String(id).split('.');
             return {
-                id:  id.pop(),
+                id:  this.idPrefix + id.pop(),
                 url: '/' + (id.length ? id.join('/') + '.' + this.format : '')
             };
         },
@@ -72,33 +70,19 @@
                 return self.engine(tmpl.id);
             } catch (e) {
                 var p = new sjs.promise();
-                $.query(this.baseUrl + tmplId.url, null, function (js, html) {
+                $.query(this.baseUrl + tmpl.url, null, function (js, html) {
                     sjs.makeHTML(html, document.body);
-                    p.resolve(self.engine(tmpl.id), true);
+                    p.resolve([self.engine(tmpl.id)]);
                 });
                 return p;
             }
         },
         getAll: function () {
-            var p = new sjs.promise(), count = arguments.length, isRejected = false, onErr = function () {
-                    if (!isRejected) {
-                        p.reject();
-                        isRejected = true;
-                    }
-                },
-                isQueued = false, data = [], onOk = function (tmpl) {
-                    if (isQueued && !isRejected && count-- == 0) {
-                        p.resolve(data);
-                        data = null;
-                    }
-                };
-            for (var i = 0, c = count; i < c; i++) {
-                var tmpl = this.get(arguments[i]);
-                data.push(tmpl);
-                sjs.when(tmpl, onOk, onErr);
+            var tmpls = [];
+            for (var i = 0, c = arguments.length; i < c; i++) {
+                tmpls.push(this.get(arguments[i]));
             }
-            isQueued = true;
-            return p;
+            return sjs.promiseAll.apply(sjs, tmpls);
         }
     };
 })(window.sjs);
