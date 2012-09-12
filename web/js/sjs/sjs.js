@@ -674,8 +674,8 @@ sjs.extend({
     globals:{},
     $empty:function(){},
     isActive:false,
+    wrapper: document.createElement('div'),
     pathToBlankGif:'/tmpl/img/blank.gif',
-    wrapper:document.createElement('div'),
     exp:{
         BeginSpace:new RegExp(/^\s+/),
         EndSpace:new RegExp(/\s+$/),
@@ -1736,7 +1736,7 @@ sjs.extend({
         return sjs.getText(obj)
     },
     makeHTML:function(html,root){
-        var div=sjs.wrapper,i,tmp;
+        var div=document.createElement('div'),i,tmp;
 
         div.innerHTML=html;
         if(root&&root.nodeName){
@@ -1856,12 +1856,15 @@ sjs.promise = function () {
 sjs.promise.prototype = {
     _call: function (type, object) {
         var fns = this.callbacks[type], i = fns.length;
+        if (!object.length && !object.push) {
+            object = [object];
+        }
         while (i--) {
-            fns[i].call(this, object);
+            fns[i].apply(this, object);
         }
     },
-    resolve: function (obj) {
-        if (sjs.isFn(obj)) {
+    resolve: function (obj, call) {
+        if (!call && sjs.isFn(obj)) {
             this.callbacks.ok.push(obj);
         } else {
             this.state = true;
@@ -1869,8 +1872,8 @@ sjs.promise.prototype = {
         }
         return this;
     },
-    reject: function (obj) {
-        if (sjs.isFn(obj)) {
+    reject: function (obj, call) {
+        if (!call && sjs.isFn(obj)) {
             this.callbacks.err.push(obj);
         } else {
             this.state = false;
@@ -1895,7 +1898,7 @@ sjs.ScrollableContent = new sjs.plugin({
         var self = this;
         this.cfg = {};
         this.page   = options.page || 1;
-        this.cfg.gt = options.gt || 3;
+        this.cfg.loadAfterHeight = options.loadAfterHeight || 95;
         this.cfg.data = options.data || {};
         this.cfg.url  = options.url;
         this.loaded   = {};
@@ -1903,11 +1906,9 @@ sjs.ScrollableContent = new sjs.plugin({
             load: new sjs.promise(),
             data: new sjs.promise()
         };
-
+        this.cfg.scrollWhile = options.scrollWhile || sjs.$empty;
         sjs(content).mousewheel(function() {
-            if (this.scrollHeight - this.scrollTop <= this.scrollHeight / self.cfg.gt
-                || this.offsetHeight + this.scrollTop >= this.scrollHeight
-            ) {
+            if (this.offsetHeight >= this.scrollHeight || self.cfg.scrollWhile.call(self) !== false && Math.round(this.scrollTop / ( this.scrollHeight - this.clientHeight ) * 100 ) > self.cfg.loadAfterHeight) {
                 self.load()
             }
         });

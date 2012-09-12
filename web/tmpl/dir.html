@@ -1,0 +1,59 @@
+<!--
+/*
+ * This file is part of the iFilemanager package.
+ * (c) 2010-2011 Stotskiy Sergiy <serjo@freaksidea.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+-->
+<script type="text/html" id="sj_filemanager_files_list">
+  <table class="sjs_table filelist">
+      <thead>
+          <tr class="head">
+              <th class="tcenter width40 padding-left-0"><input type="checkbox" /></th>
+              <th class="list-current"><a href="#" class="sort by-name"><?= $.i18n('File Name') ?></a></th>
+              <th class="width70"><a href="#" class="sort by-type"><?= $.i18n('Type') ?></a></th>
+              <th><a href="#" class="sort by-size"><?= $.i18n('Size') ?></a></th>
+              <th class="width110"><a href="#" class="sort by-modify"><?= $.i18n('Modified At') ?></a></th>
+          </tr>
+      </thead>
+  <tbody class="<?= $.cur_dir ?>/">
+      <? if ($.cur_dir) { ?>
+      <tr class="parent-dir">
+          <td class="tcenter padding-left-0 width40">&nbsp;</td>
+          <td class="dir list-current"><label class="parent-dir folder">..</label></td>
+          <td class="width70">&nbsp;</td>
+          <td>&nbsp;</td>
+          <td class="width110">&nbsp;</td>
+      </tr>
+      <? } ?>
+      <? if ($.source && $.source.length) { ?>
+          <? for (var i = 0, c = $.source.length; i < c; i++) { ?>
+              <?= render('sj_filemanager_files_list_row', {
+                  file: $.source[i],
+                  i18n: $.i18n
+              }) ?>
+          <? } ?>
+      <? } else if (!$.cur_dir) { ?>
+      <tr><td colspan="5" align="center"><?= $.i18n('Empty Folder') ?></td></tr>
+      <? } ?>
+      </tbody>
+  </table>
+</script>
+
+<script type="text/html" id="sj_filemanager_files_list_row">
+    <? var file = $.file; ?>
+    <tr>
+        <td class="tcenter padding-left-0 width40"><input type="checkbox" name="files[]" value="<?= file.basename ?>" /></td>
+        <? if (file.is_dir) { ?>
+        <td class="dir list-current"><label class="folder"><?= file.name ?></label></td>
+        <td class="width70"><?= $.i18n('Folder') ?></td>
+        <? } else { ?>
+        <td class="file list-current"><label class="default <?= file.type.toLowerCase() ?>"><?= file.name ?></label></td>
+        <td class="width70"><?= file.type.toLowerCase() ?></td>
+        <? } ?>
+        <td><?= file.size ?></td>
+        <td class="width110"><?= file.modified_at ?></td>
+    </tr>
+</script>

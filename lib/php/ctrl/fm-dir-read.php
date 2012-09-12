@@ -57,8 +57,8 @@ try {
             $extension = !$is_dir && isset($info['extension']) ? $info['extension'] : '';
         }
         $data[] = array(
-            'basename' => htmlentities($info['basename'], 2, $sjConfig['charset']),
-            'name'  => htmlentities($filename, 2, $sjConfig['charset']),
+            'basename' => $info['basename'],
+            'name'  => $filename,
             'size'  => $is_dir ? '' : $fs->formatSize($file) . 'b',
             'modify'=> $fs->formatDate(filemtime($file)),
             'type'  => $extension,
@@ -66,50 +66,10 @@ try {
         );
     }
 
-    $file_actions = array();
-    $show_actions = !empty($_REQUEST['show_actions']);
-    if (!$_SYSTEM['is_ajax'] || $show_actions) {
-        $file_actions = array(
-            array('refresh',  '',                         $_SYSTEM['lang']['REFRESH']),
-            array('createDir', '',                        $_SYSTEM['lang']['CREATE_DIR']),
-            array('cut',     'onlyFile sjsFMdinamic',     $_SYSTEM['lang']['CUT']),
-            array('copy',    'onlyFile sjsFMdinamic',     $_SYSTEM['lang']['COPY']),
-            array('remove',  'sjsFMdinamic',              $_SYSTEM['lang']['REMOVE']),
-            array('paste',   'sjsFMdisabled sjsFMdinamic',$_SYSTEM['lang']['PASTE']),
-            array('rename',  'sjsFMdinamic',              $_SYSTEM['lang']['RENAME']),
-            array('perms',   'sjsFMdinamic',              $_SYSTEM['lang']['PERMS']),
-            array('upload',    '',                        $_SYSTEM['lang']['UPLOAD']),
-            array('download',  'sjsFMdisable',            $_SYSTEM['lang']['DOWNLOAD']),
-            array('dirInfo',   '',                        $_SYSTEM['lang']['DIR_INFO']),
-            array('transform', 'active',                  $_SYSTEM['lang']['TRANSFORM'])
-        );
-        ksort($file_actions);
-        if (isset($sjConfig['allowed_actions'])) {
-            foreach ($file_actions as $k => $action) {
-                if (!in_array($action[0], $sjConfig['allowed_actions'])) {
-                    unset($file_actions[$k]);
-                }
-            }
-        }
-    }
-
-    $vars = array(
-        'file_actions' => $file_actions,
-        'cur_dir'      => htmlentities($cur_dir, 2, $sjConfig['charset']),
+    $_RESULT['files'] = array(
+        'cur_dir'      => $cur_dir,
         'source'       => $data
     );
-
-    if (!empty($_REQUEST['format']) && $_REQUEST['format'] == 'json') {
-        $_RESULT['files'] = $vars;
-    } else {
-        $tmpl = !empty($_SYSTEM['template']) ? $_SYSTEM['template'] : 'dir';
-        $view = new iView($tmpl);
-
-        $view->setI18n($_SYSTEM['i18n'])->render(array_merge($vars, array(
-            'lang'      => $_SYSTEM['lang'],
-            'base_host' => 'http://' . $_SERVER['HTTP_HOST']
-        )));
-    }
 } catch (sjException $e) {
     if ($_SYSTEM['is_ajax']) {
         $_RESULT['response']['status'] = 'error';

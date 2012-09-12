@@ -18,7 +18,14 @@
 sjs.globals.fm={};
 var sjFileManager = new sjs.plugin({
     __construct: function(content, cfg, listeners) {
-        this._create(content, cfg, listeners)
+        var self = this;
+        this.view  = new sjs.View({ baseUrl: cfg.baseTemplateUrl });
+        this.files = cfg.files || [];
+
+        sjs.when(this.view.getAll('tmpl.window.sj_filemanager_body', 'tmpl.dir.sj_filemanager_files_list'), function (body) {
+            body.render(cfg.files);
+            self._create(content, cfg, listeners)
+        });
     },
     __destruct:function(){
         delete sjs.globals.fm[this.id];
@@ -31,9 +38,15 @@ var sjFileManager = new sjs.plugin({
         this.windows=this.requestData=this.events=this.lastSelected=this.id=null;
     },
     _request: function (url, data) {
-        var waiter = new sjs.promise();
+        var waiter = new sjs.promise(), id = this.id;
         sjs.query(url, data, function (js, html) {
-            waiter.resolve({js: js, html: html});
+            var mn = sjs.globals.fm[id];
+            if(js && js.response && js.response.status == 'error'){
+                waiter.reject([js, html, mn]);
+                mn.notify('serverError', js, html);
+            } else {
+                waiter.resolve([js, html, mn]);
+            }
         }, true);
         return waiter;
     },
@@ -58,7 +71,29 @@ var sjFileManager = new sjs.plugin({
         this.initialize(content);
         sjs.globals.fm[this.id]=this;
 
+        this._createActions();
         this.notify('ready', content);
+    },
+    _createActions: function () {
+        var actions = [
+            ['refresh'   { title: sjFileManager.i18n('Refresh') }],
+            ['createDir' { title: sjFileManager.i18n('Create Folder')}],
+            ['cut'       { title: sjFileManager.i18n("Cut"), dynamic: true, 'for': 'files'}],
+            ['copy'      { title: sjFileManager.i18n("Copy"), dynamic: true, 'for': 'dirs'}],
+            ['remove'    { title: sjFileManager.i18n("Remove"), dynamic: true }],
+            ['paste'     { title: sjFileManager.i18n("Paste"),  dynamic: true, enabled: false }],
+            ['rename'    { title: sjFileManager.i18n("Rename"),  dynamic: true }],
+            ['perms'     { title: sjFileManager.i18n("Permissions"),  dynamic: true }],
+            ['upload'    { title: sjFileManager.i18n("Upload File(s)") }],
+            ['download'  { title: sjFileManager.i18n("Download File(s) as Zip Archive") }],
+            ['dirInfo'   { title: sjFileManager.i18n("Information about File(s)") }],
+            ['transform' { title: sjFileManager.i18n("Fix Panel") }]
+        ];
+
+        for (var i = 0, c = actions.length; i < c; i++) {
+            var action = actions[i];
+            this.addAction(action[0], action[1]);
+        }
     },
     findLastSelected:function(tbl){
         tbl=tbl.tBodies[0];
@@ -208,7 +243,7 @@ var sjFileManager = new sjs.plugin({
             return false
         });
 
-        var wrapper = content.parent().parent();
+        var wrapper = content.parent(2);
         var path = sjs('<div id="sjPath" />').unselectable().onEvent('click', function(e) {
             var that = sjs.event.caller(e);
             if (!sjs.nodeName(that, 'a')) {
@@ -470,11 +505,15 @@ var sjFileManager = new sjs.plugin({
             }
 
             if ('enabled' in options && !options['enabled']) {
-                attrs['class'].push('sjsFMdisable');
+                attrs['class'].push('sjsFMdisabled');
             }
 
             if ('class' in options) {
                 attrs['class'].push(options['class']);
+            }
+
+            if ('title' in options) {
+                attrs['title'] = options.title;
             }
 
             attrs['class'] = attrs['class'].join(' ');
@@ -488,7 +527,9 @@ var sjFileManager = new sjs.plugin({
                 btn.appendTo(this.actionsBlock);
             }
         }
-        this[name + 'Action'] = callback;
+        if (sjs.isFn(callback)) {
+            this[name + 'Action'] = callback;
+        }
         return this;
     },
     getActionButton: function(name) {
@@ -527,11 +568,9 @@ var sjFileManager = new sjs.plugin({
             this.actionsBlock.setClass('dofileaction');
         }
 
-        sjs.query(this.dirUrl, { dirpath: dir }, ResponseProcessor.opendir, 1,{
-            line: content,
-            isRefresh: refresh,
-            fmId: this.id
-        });
+        this._request(this.actionUrl, { dirpath: dir }).resolve(ResponseProcessor.opendir).reject(function(js, html) {
+            sjs(content).find('label').removeClass('loading');
+        })
         this.restoreDefaultActions();
     },
     transformAction:function(btn){
@@ -574,12 +613,10 @@ var sjFileManager = new sjs.plugin({
             return false
         }
 
-        sjs.query(this.actionUrl, sjs.extend({
+        this._request(this.actionUrl, sjs.extend({
             action: 'paste',
             path: this.getCurrentPath()
-        }, this.requestData),ResponseProcessor.paste,1,{
-            object_id: this.id
-        });
+        }, this.requestData)).resolve(ResponseProcessor.paste);
     },
     removeAction:function(btn){
         this.actionsBlock.find('img').setClass('unvisible');
@@ -633,7 +670,7 @@ var sjFileManager = new sjs.plugin({
     downloadAction:function(btn){
         this.actionsBlock.find('img').setClass('unvisible');
 
-        sjs.query(this.actionUrl,{
+        this._request(this.actionUrl,{
             action: 'download',
             path: this.getCurrentPath(),
             files: document.sjs_form
@@ -784,29 +821,22 @@ var ResponseProcessor = {
 
        return mn
     },
-    opendir: function(js,html){
-       var mn=sjs.globals.fm[this.args.fmId], curDir;
+    opendir: function(js, html, mn) {
+        var curDir = mn.getCurrentPath(tbl),
+            tbl = mn.getContent().html(html).first().item(0);
 
-       if(js && js.response && js.response.status == 'error'){
-            sjs(this.args.line).find('label').removeClass('loading');
-            mn.notify('serverError', js, html);
-       } else {
-           var tbl = mn.getContent().html(html).first().item(0);
-           curDir=mn.getCurrentPath(tbl);
-           if (this.args.isRefresh) {
-              mn.actionsBlock.removeClass('dofileaction');
-           } else {
-              mn.displayFullPath(curDir);
-           }
-       }
+        if (this.args.isRefresh) {
+            mn.actionsBlock.removeClass('dofileaction');
+        } else {
+            mn.displayFullPath(curDir);
+        }
     },
-    paste: function(js,txt){
-        var mn = ResponseProcessor.base.call(this, js, txt);
-        if (js.response.status != 'error') {
-           mn.actionsBlock.find('a[name="paste"]')
+    paste: function(js,txt,mn){
+        ResponseProcessor.base(js, txt, mn);
+
+        mn.actionsBlock.find('a[name="paste"]')
             .setClass('sjsFMdisabled')
             .removeClass('sjsFMenabled');
-        }
     },
     remove: function(content, js, html, wObj){
        this.actionsBlock.find('img').removeClass('unvisible');
@@ -1069,16 +1099,16 @@ sjFileManager.configure = function (options) {
         this.i18n(options.i18n);
     }
 
-    var url = sjs.trim(options.url) + "?tmpl=window&show_actions=1";
+    var url = sjs.trim(options.url);
     if (options.opendir) {
-        url += '&dirpath=' + options.opendir;
+        url += (url.indexOf('?') == -1 '?' : '&') + 'dirpath=' + options.opendir;
     }
 
     Config.set('url', url)
         .set('fm.container', options.container, '#sjFilemanager')
         .set('fm.rootUrl', options.root)
         .set('fm.actionUrl', sjs.trim(options.url))
-        .set('fm.files_per_page', options.files_per_page, 100);
+        .set('fm.baseTemplateUrl', options.baseTemplateUrl);
 
     options.window = options.window || {};
     Config.set('window.tmpl', '#sjWindowTmpl')
@@ -1104,6 +1134,7 @@ sjFileManager.getInstance = function() {
     }
 
     var w = new sjWindow(Config.get('url'), Config.get('window'), function(content, js, html) {
+
         var node = sjs(Config.get('fm.container'));
 
         if (!node.length) {
@@ -1172,6 +1203,17 @@ sjFileManager.choiseCallback = function(field, type) {
     });
 };
 
+var i18n = {};
+sjFileManager.i18n = function(data) {
+    if (data.constructor != String) {
+        i18n = data;
+    } else if (i18n[data]) {
+        return i18n[data];
+    } else {
+        return i18n;
+    }
+};
+
 window.sjFileManager = sjFileManager;
 }())
 
@@ -1187,17 +1229,6 @@ sjFileManager.link = function(obj, id) {
         return null;
     }
     return obj.__FileManageId__ = id;
-};
-
-sjFileManager.tr = {};
-sjFileManager.i18n = function(data) {
-    if (data.constructor != String) {
-        this.tr = data;
-    } else if (this.tr[data]) {
-        return this.tr[data];
-    } else {
-        return data;
-    }
 };
 
 sjFileManager.getUploader = function(url, cfg){

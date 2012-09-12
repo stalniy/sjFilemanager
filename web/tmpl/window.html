@@ -1,0 +1,76 @@
+<!--
+/**
+ * This file is part of the iFilemanager package.
+ * (c) 2010-2011 Stotskiy Sergiy <serjo@freaksidea.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+-->
+<script type="text/html" id="sj_filemanager_body">
+  <div id="sjWrapper">
+      <form class="sjs_form" name="sjs_form" action="" method="post" enctype="multipart/form-data">
+          <div class="filemanagertop" id="sjFmActions" title="<?= $.cur_dir ?>">
+              <span class="loading somedo"></span>
+              <? for (var i = 0, c = $.file_actions.length; i < c; i++) { var item = $.file_actions[i]; ?>
+              <a href="#" class="sjfm_files_<?= item[0] + ' ' + item[1] ?>" title="<?= item[2]?>" name="<?= item[0] ?>">&nbsp;</a>
+              <? } ?>
+          </div>
+          <div id="sjFilemanager"><?= render('sj_filemanager_dir', $) ?></div>
+      </form>
+  </div>
+</script>
+
+<script type="text/html" id="sjConfirmTmpl">
+    <div style="padding:2px;" class="sjs_form">
+        <div class="label window_warning"><?= $.i18n('Are you sure you want to permanently delete') ?>?</div>
+        <div class="field" align="right" style="margin-right:50px;">
+        <?= render('sj_filemanager_button', {
+            type: 'button',
+            btn_name: 'ok',
+            label: $.i18n('OK')
+        }) ?>
+        <?= render('sj_filemanager_button', {
+            type: 'button',
+            label: $.i18n('Cancel'),
+            btn_name: 'cancel',
+            btn_value: 'cancel'
+        }) ?>
+        </div>
+    </div>
+</script>
+
+<script type="text/html" id="sj_filemanager_button">
+    <button class="btn-submit no_bg no_border <?= $.btn_class || '' ?>" type="<?= $.type ?>" name="<?= $.btn_name ?>" value="<?= $.btn_value || $.btn_name ?>"><span class="leftImg">&nbsp;</span><span class="submit"><?= $.label ?></span><span class="rightImg">&nbsp;</span></button>
+</script>
+
+<script type="text/html" id="sj_filemanager_file_info">
+    <div style="padding:4px" class="span-table">
+        <span class="no_bold label span-cell">
+        <? for (var i = 0, list = $.i18n('file_info_labels'), c = list.length; i < c; i++) { ?>
+            <span><?= list[i] ?></span>
+        <? } ?>
+        </span>
+        <span class="margin-left20 no_bold label span-cell">
+        <? for (var i = 0, c = $.file_info.length; i < c; i++) { ?>
+            <span><?= $.file_info[i] ?></span>
+        <? } ?>
+        </span>
+    </div>
+</script>
+
+<div id="sjUploadTmpl" class="hidden">
+    <div class="upload-form sjs_form">
+        <div class="fieldset flash label" id="sjFmUploadProgress">
+            <span class="legend"><?= $.i18n('Upload Files') ?></span>
+        </div>
+        <div id="divMovieContainer" style="margin:0 5px;padding:10px 0">
+            <span id="sjFmButtonPlaceHolder"></span>
+            <?= render('sj_filemanager_button', {
+                type: 'button',
+                label: $.i18n('Upload'),
+                btn_name: 'upload'
+            }) ?>
+        </div>
+    </div>
+</div>
