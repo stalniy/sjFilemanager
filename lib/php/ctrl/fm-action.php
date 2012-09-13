@@ -52,6 +52,7 @@ try {
 
         $fm->import($files);
     }
+
     switch($action){
         case 'paste':
             if (!$has_files) {
@@ -60,7 +61,7 @@ try {
 
             $fm->paste($path, array(
                 'dynamic_name' => true,
-                'move'         => isset($_REQUEST['onlyCopy']) && !$_REQUEST['onlyCopy']
+                'move'         => empty($_REQUEST['onlyCopy'])
             ));
         break;
         case 'remove':
@@ -83,17 +84,9 @@ try {
                 throw new sjException($_SYSTEM['i18n']->__('Unable to process request'));
             }
 
-            if (isset($_REQUEST['fileperms'])) {
-                $fileperms = trim($_REQUEST['fileperms']);
-            } else {
-                $fileperms = false;
-                $_SYSTEM['tmpl'] = 'actions/perms';
-            }
+            $fileperms = empty($_REQUEST['fileperms']) ? false : trim($_REQUEST['fileperms']);
 
-            if (!$fileperms && $fm->count() == 1) {
-                $mode = (int)$fs->getMode(reset($files));
-                $_SYSTEM['tmpl_params']['perms_value'] = $mode;
-            } elseif (is_numeric($fileperms)) {
+            if (is_numeric($fileperms)) {
                 if (strlen($fileperms) < 3) {
                     while (strlen($fileperms) != 3) $fileperms .= '0';
                 }
@@ -106,11 +99,9 @@ try {
             if ($has_files) {
                 $filename = reset($files);
             }
-            $stat = $fs->stat($filename);
-            $stat['size'] = $fs->formatSize($filename);
-
-            $_SYSTEM['tmpl_params']['property'] = array_slice($stat, 0);
-            $_SYSTEM['tmpl'] = 'actions/property';
+            $stat = array('type' => filetype($filename)) + $fs->stat($filename);
+            $stat['size'] = $fs->formatSize($filename) . 'b';
+            $_RESULT['file_info'] = $stat;
         break;
         case 'create_dir':
             if (!isset($_REQUEST['dirname']) || !$_REQUEST['dirname']) {
@@ -138,7 +129,7 @@ try {
 
             $newFileName = $fs->prepareFilename(reset($_REQUEST['fileNames']));
             $newFileExt  = $fs->getPathInfo($newFileName, PATHINFO_EXTENSION);
-            if (!empty($sjConfig['uploader']['allowed_types'])
+            if ($newFileExt && !empty($sjConfig['uploader']['allowed_types'])
                 && !in_array($newFileExt, $sjConfig['uploader']['allowed_types'])
             ) {
                 throw new sjException($_SYSTEM['i18n']->__('Files with extension "%s" does not allowed', $newFileExt));
@@ -177,12 +168,3 @@ try {
         echo $_RESULT['response']['msg'];
     }
 }
-
-if (isset($_SYSTEM['tmpl'])) {
-    $view = new iView($_SYSTEM['tmpl']);
-    $view->render(array_merge(
-        $_SYSTEM['tmpl_params'],
-        array('lang' => $_SYSTEM['lang'])
-    ));
-}
-?>

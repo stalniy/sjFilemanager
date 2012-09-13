@@ -47,14 +47,14 @@
         <? } ?>
         </span>
         <span class="margin-left20 no_bold label span-cell">
-        <? for (var i = 0, c = $.file_info.length; i < c; i++) { ?>
-            <span><?= $.file_info[i] ?></span>
+        <? for (var i in $.file_info) { ?>
+            <span> : <?= $.file_info[i] ?></span>
         <? } ?>
         </span>
     </div>
 </script>
 
-<div id="sjUploadTmpl" class="hidden">
+<script type="text/html" id="sj_filemanager_upload_form">
     <div class="upload-form sjs_form">
         <div class="fieldset flash label" id="sjFmUploadProgress">
             <span class="legend"><?= $.i18n('Upload Files') ?></span>
@@ -68,4 +68,4 @@
             }) ?>
         </div>
     </div>
-</div>
+</script>

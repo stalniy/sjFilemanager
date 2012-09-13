@@ -21,11 +21,15 @@ if (SWFUpload == undefined) {
 		this.customSettings = cfg.custom_settings||{};
 		this.customSettings.queue_upload_count = 0;
 		this.cfg = cfg;
+    this.isActive = false;
 		this.eventQueue = new Array();
 		this.movieName = "SWFUpload_" + arguments.callee.movieCount++;
 		arguments.callee.instances[this.movieName] = this; // Setup global control tracking
 		this.initSettings(this.cfg);
-		this.loadFlash();
+		if (!cfg.lazy) {
+        this.isActive = true;
+        this.loadFlash();
+    }
 		this.displayDebugInfo()
 	}
 }
@@ -75,13 +79,13 @@ SWFUpload.WINDOW_MODE = {
 SWFUpload.Console = {
 	writeLine:function(msg){
 		var console=null, documentForm=null;
-	
+
 		try {
 			console = document.getElementById("SWFUpload_Console");
 			if (!console) {
 				documentForm = document.createElement("form");
 				document.getElementsByTagName("body")[0].appendChild(documentForm);
-	
+
 				console = document.createElement("textarea");
 				console.id = "SWFUpload_Console";
 				console.style.fontFamily = "monospace";
@@ -102,6 +106,12 @@ SWFUpload.Console = {
 };
 
 SWFUpload.prototype={
+    wakeUp: function(){
+        if (!this.isActive) {
+            this.loadFlash();
+            this.isActive = true;
+        }
+    },
     getName: function(){
         return 'SWFUpload';
     },
@@ -117,16 +127,16 @@ SWFUpload.prototype={
 		this.setValue("use_query_string", false);
 		this.setValue("requeue_on_error", false);
 		this.setValue("http_success", []);
-		
+
 		this.setValue("file_types", "*.*");
 		this.setValue("file_types_description", "All Files");
 		this.setValue("file_size_limit", 0);	// Default zero means "unlimited"
 		this.setValue("file_upload_limit", 0);
 		this.setValue("file_queue_limit", 0);
-	
+
 		this.setValue("flash_url", "swfupload.swf");
 		this.setValue("prevent_swf_caching", true);
-		
+
 		this.setValue("button_image_url", "");
 		this.setValue("button_width", 20);
 		this.setValue("button_height", 20);
@@ -139,24 +149,24 @@ SWFUpload.prototype={
 		this.setValue("button_placeholder_id", "");
 		this.setValue("button_cursor", SWFUpload.CURSOR.ARROW);
 		this.setValue("button_window_mode", SWFUpload.WINDOW_MODE.WINDOW);
-		
+
 		this.setValue("debug", false);
 		this.cfg.debug_enabled = this.cfg.debug;	// Here to maintain v2 API
-		
+
 		this.cfg.return_upload_start_handler = this.returnUploadStart;
 		this.setValue("swfupload_loaded_handler", null);
 		this.setValue("file_dialog_start_handler", null);
 		this.setValue("file_queued_handler", null);
 		this.setValue("file_queue_error_handler", null);
 		this.setValue("file_dialog_complete_handler", null);
-		
+
 		this.setValue("upload_start_handler", null);
 		this.setValue("upload_progress_handler", null);
 		this.setValue("upload_error_handler", null);
 		this.setValue("upload_success_handler", null);
 		this.setValue("upload_complete_handler", null);
 		this.setValue("debug_handler", this.debugMessage);
-	
+
 		if(this.cfg.prevent_swf_caching)
 			this.cfg.flash_url=this.cfg.flash_url+(this.cfg.flash_url.indexOf("?")==-1 ? "?" : "&")+"preventswfcaching="+new Date().getTime()
 	},
@@ -174,7 +184,7 @@ SWFUpload.prototype={
 	},
 	loadFlash:function () {
 		var targetElement=null, tempParent=null;
-	
+
 		if(document.getElementById(this.movieName))
 			throw ("ID "+this.movieName+" is already in use. The Flash Object could not be added");
 		targetElement = document.getElementById(this.cfg.button_placeholder_id);
@@ -189,8 +199,8 @@ SWFUpload.prototype={
 		if (window[this.movieName]) window[this.movieName] = this.getMovieElement();
 	},
 	getFlashHTML:function(){
-		return (new Array('<object id="', this.movieName, '" name="',this.movieName,'" type="application/x-shockwave-flash" data="', 
-					this.cfg.flash_url, '" width="', this.cfg.button_width, 
+		return (new Array('<object id="', this.movieName, '" name="',this.movieName,'" type="application/x-shockwave-flash" data="',
+					this.cfg.flash_url, '" width="', this.cfg.button_width,
 					'" height="', this.cfg.button_height, '" class="swfupload">',
 					'<param name="wmode" value="', this.cfg.button_window_mode, '" />',
 					'<param name="movie" value="', this.cfg.flash_url, '" />',
@@ -202,7 +212,7 @@ SWFUpload.prototype={
 	},
 	getFlashVars:function(){
 		var paramString = this.buildParamString(), httpSuccessString = this.cfg.http_success.join(","),enc=encodeURIComponent;
-		
+
 		return (new Array("movieName=", enc(this.movieName),
 				"&amp;uploadURL=", enc(this.cfg.upload_url),
 				"&amp;useQueryString=", enc(this.cfg.use_query_string),
@@ -232,20 +242,20 @@ SWFUpload.prototype={
 		//if(!this.movieElement) this.movieElement=document[this.movieName]||window[this.movieName];
 		var movie=document[this.movieName]||window[this.movieName];
 		if(!movie) throw "Could not find Flash element";
-		
+
 		return movie
 	},
 	buildParamString:function(){
 		var postParams = this.cfg.post_params, paramStringPairs=new Array();
-	
+
 		if (typeof postParams == "object")	for(var name in postParams) if(postParams.hasOwnProperty(name))
 			paramStringPairs.push(encodeURIComponent(name.toString()) + "=" + encodeURIComponent(postParams[name].toString()));
-	
+
 		return paramStringPairs.join("&amp;")
 	},
 	callFlash:function(functionName, argumentArray){
 		var movieElement=this.getMovieElement(), returnValue=null, returnString=null;
-	
+
 		argumentArray =argumentArray||(new Array());
 		try{
 			returnString=movieElement.CallFunction(
@@ -256,7 +266,7 @@ SWFUpload.prototype={
 			throw "Call to "+functionName+" failed"
 		}
 		if(returnValue && typeof returnValue.post === "object") returnValue=this.unescapeFilePostParams(returnValue);
-	
+
 		return returnValue
 	},
 	selectFile:function(){
@@ -301,7 +311,7 @@ SWFUpload.prototype={
 	queueEvent:function (handlerName, argumentArray) {
 		// Warning: Don't call this.debug inside here or you'll create an infinite loop
 		var self = this;
-	
+
 		argumentArray=argumentArray||(new Array());
 		if(!(argumentArray instanceof Array)) argumentArray = [argumentArray];
 		if (typeof this.cfg[handlerName]==="function"){
@@ -318,7 +328,7 @@ SWFUpload.prototype={
 	},
 	unescapeFilePostParams:function(file){
 		var reg=/[$]([0-9a-f]{4})/i, unescapedPost={}, uk=null,match=null;
-	
+
 		if(file){
 			for(var k in file.post) if(file.post.hasOwnProperty(k)) {
 				uk = k;
@@ -328,7 +338,7 @@ SWFUpload.prototype={
 			}
 			file.post=unescapedPost;
 		}
-	
+
 		return file
 	},
 	testExternalInterface:function(){
@@ -340,7 +350,7 @@ SWFUpload.prototype={
 	},
 	flashReady:function(){
 		var movieElement=this.getMovieElement();
-	
+
 		if (!movieElement) {
 			this.debug("Flash called back ready but the flash movie can't be found.");
 			return;
@@ -391,7 +401,7 @@ SWFUpload.prototype={
 			returnValue = this.cfg.upload_start_handler.call(this, file)
 		} else
 			throw "upload_start_handler must be a function";
-	
+
 		if(returnValue === undefined) returnValue = true;
 		this.callFlash("ReturnUploadStart", [!!returnValue]);
 	},
@@ -454,7 +464,7 @@ SWFUpload.prototype={
 			"\n\t", "file_queued_handler assigned:      ",(typeof this.cfg.file_queued_handler === "function").toString(),
 			"\n\t", "file_queue_error_handler assigned:  ", (typeof this.cfg.file_queue_error_handler === "function").toString(),
 			"\n\t", "upload_start_handler assigned:      ", (typeof this.cfg.upload_start_handler === "function").toString(),
-			"\n\t", "upload_progress_handler assigned:   ", (typeof this.cfg.upload_progress_handler === "function").toString(), 
+			"\n\t", "upload_progress_handler assigned:   ", (typeof this.cfg.upload_progress_handler === "function").toString(),
 			"\n\t", "upload_error_handler assigned:      ", (typeof this.cfg.upload_error_handler === "function").toString(),
 			"\n\t", "upload_success_handler assigned:    ", (typeof this.cfg.upload_success_handler === "function").toString(),
 			"\n\t", "upload_complete_handler assigned:   ", (typeof this.cfg.upload_complete_handler === "function").toString(),
@@ -464,7 +474,7 @@ SWFUpload.prototype={
 	debugMessage:function(msg){
 		if (this.cfg.debug) {
 			var exceptionMessage=null, exceptionValues = new Array();
-	
+
 			// Check for an exception object and print it nicely
 			if (typeof msg === "object" && typeof msg.name === "string" && typeof msg.message === "string") {
 				for (var key in msg) if(msg.hasOwnProperty(key))
@@ -477,31 +487,31 @@ SWFUpload.prototype={
 				SWFUpload.Console.writeLine(msg);
 			}
 		}
-	}	
+	}
 };
 
 /*
 	Queue Plug-in
-	
+
 	Features:
 		cancelQueue method for cancelling the entire queue.
 		All queued files are uploaded when startUpload() is called.
 		If false is returned from uploadComplete then the queue upload is stopped.  If false is not returned (strict comparison) then the queue upload is continued.
-		
+
 	*/
 
 var SWFUpload;
 if (typeof(SWFUpload) === "function") {
 	SWFUpload.queue = {};
-	
+
 	SWFUpload.prototype.initSettings = function (old_initSettings) {
 		return function (init_settings) {
 			if (typeof(old_initSettings) === "function") {
 				old_initSettings.call(this, init_settings);
 			}
-			
+
 			this.customSettings.queue_cancelled_flag = false;
-			
+
 			this.setValue("user_upload_complete_handler", init_settings.upload_complete_handler);
 			this.cfg.upload_complete_handler = SWFUpload.queue.uploadComplete;
 		};
@@ -514,20 +524,20 @@ if (typeof(SWFUpload) === "function") {
 		if (stats.in_progress > 0) {
 			this.customSettings.queue_cancelled_flag = true;
 		}
-		
+
 		while(stats.files_queued > 0) {
 			this.cancelUpload();
 			stats = this.getStats();
 		}
 	};
-	
+
 	SWFUpload.queue.uploadComplete = function (file) {
 		var user_upload_complete_handler = this.cfg.user_upload_complete_handler;
 		var continue_upload = true;
 		if (typeof(user_upload_complete_handler) === "function") {
 			continue_upload = user_upload_complete_handler.call(this, file) === false;
 		}
-		
+
 		if (continue_upload) {
 			var stats = this.getStats();
 			if (stats.files_queued > 0 && this.customSettings.queue_cancelled_flag === false) {

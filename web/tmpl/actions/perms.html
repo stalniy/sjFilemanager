@@ -8,41 +8,41 @@
  */
 -->
 <script type="text/html" id="sj_filemanager_permissions_form">
-    <div style="padding:4px;" class="span-table sjs_form">
+    <div style="padding:4px;" class="span-table"><form class=" sjs_form">
         <span class="perms_fieldset label">
             <span><?= $.i18n('Owner') ?></span>
-            <label for="owner_r">
-            	<input type="checkbox" value="400" name="perms[own_read]" id="owner_r"  /> <?= $.i18n('Read') ?>
+            <label>
+            	<input type="checkbox" value="400" name="perms[own_read]" /> <?= $.i18n('Read') ?>
             </label>
-            <label for="owner_w">
-            	<input type="checkbox" value="200" name="perms[own_write]" id="owner_w" /> <?= $.i18n('Write') ?>
+            <label>
+            	<input type="checkbox" value="200" name="perms[own_write]" /> <?= $.i18n('Write') ?>
             </label>
-            <label for="owner_e">
-            	<input type="checkbox" value="100" name="perms[own_exec]" id="owner_e" /> <?= $.i18n('Execute') ?>
+            <label>
+            	<input type="checkbox" value="100" name="perms[own_exec]" /> <?= $.i18n('Execute') ?>
             </label>
         </span
         ><span class="perms_fieldset label">
             <span><?= $.i18n('Group') ?></span>
-            <label for="group_r">
-            	<input type="checkbox" value="40" name="perms[gr_read]" id="group_r" /> <?= $.i18n('Read') ?>
+            <label>
+            	<input type="checkbox" value="40" name="perms[gr_read]" /> <?= $.i18n('Read') ?>
             </label>
-            <label for="group_w">
-            	<input type="checkbox" value="20" name="perms[gr_write]" id="group_w" /> <?= $.i18n('Write') ?>
+            <label>
+            	<input type="checkbox" value="20" name="perms[gr_write]" /> <?= $.i18n('Write') ?>
             </label>
-            <label for="group_e">
-            	<input type="checkbox" value="10" name="perms[gr_exec]" id="group_e" /> <?= $.i18n('Execute') ?>
+            <label>
+            	<input type="checkbox" value="10" name="perms[gr_exec]" /> <?= $.i18n('Execute') ?>
             </label>
         </span
         ><span class="perms_fieldset label">
             <span><?= $.i18n('Other') ?></span>
-            <label for="other_r">
-            	<input type="checkbox" value="4" name="perms[oth_read]" id="other_r" /> <?= $.i18n('Read') ?>
+            <label>
+            	<input type="checkbox" value="4" name="perms[oth_read]" /> <?= $.i18n('Read') ?>
             </label>
-            <label for="other_w">
-            	<input type="checkbox" value="2" name="perms[oth_write]" id="other_w" /> <?= $.i18n('Write') ?>
+            <label>
+            	<input type="checkbox" value="2" name="perms[oth_write]" /> <?= $.i18n('Write') ?>
             </label>
-            <label for="other_e">
-            	<input type="checkbox" value="1" name="perms[oth_exec]" id="other_e" /> <?= $.i18n('Execute') ?>
+            <label>
+            	<input type="checkbox" value="1" name="perms[oth_exec]" /> <?= $.i18n('Execute') ?>
             </label>
         </span>
         <div class="perms_btn">
@@ -59,7 +59,7 @@
                   btn_name: 'cancel',
                   btn_value: 'cancel'
               }) ?>
-            ?></div>
+            </div>
         </div>
-    </div>
+    </form></div>
 </script>

@@ -100,7 +100,7 @@ var sjFileManager = new sjs.plugin({
             ['upload',    { title: sjFileManager.i18n("Upload File(s)") }],
             ['download',  { title: sjFileManager.i18n("Download File(s) as Zip Archive") }],
             ['dirInfo',   { title: sjFileManager.i18n("Information about File(s)") }],
-            ['transform', { title: sjFileManager.i18n("Fix Panel") }]
+            ['transform', { title: sjFileManager.i18n("Fix Panel"), state: 'active' }]
         ].concat(this.actions);
 
         for (var i = 0, c = actions.length; i < c; i++) {
@@ -120,6 +120,16 @@ var sjFileManager = new sjs.plugin({
 
         return this;
     },
+    getFileInfo: function (name) {
+        var files = this.files.source, i = files.length, info = null;
+        while (i--) {
+            if (files[i].basename == name) {
+                info = files[i];
+                break;
+            }
+        }
+        return info;
+    },
     getRow: function(file) {
         var html = this.view.get('dir.files_list_row')({ file: file, i18n: sjFileManager.i18n });
         return sjs(sjs.makeHTML(html));
@@ -129,9 +139,16 @@ var sjFileManager = new sjs.plugin({
 
         switch (where) {
             case 'first':
-                this.getContent().find('tbody').prepend(row);
+                !file.fake && this.files.unshift(file);
+                var wrap = this.getContent().find('tbody');
+                if (wrap.first().hasClass('parent-dir')) {
+                    row.insertAfter(wrap.first());
+                } else {
+                    wrap.prepend(row);
+                }
                 break;
             default:
+                !file.fake && this.files.push(file);
                 this.getContent().find('tbody').append(row);
                 break;
         }
@@ -189,7 +206,6 @@ var sjFileManager = new sjs.plugin({
         this.fileStek=files;
         this.dirStek=dirs;
         this.hasStekChanges = false;
-        dirs=files=null;
         return this;
     },
     getFiles: function() {
@@ -506,6 +522,10 @@ var sjFileManager = new sjs.plugin({
                 attrs['title'] = options.title;
             }
 
+            if ('state' in options) {
+                attrs['class'].push(options.state);
+            }
+
             attrs['class'].push('sjfm_files_' + name);
             attrs['class'] = attrs['class'].join(' ');
             btn = sjs('<a href="#">&nbsp;</a>').attr(attrs);
@@ -613,10 +633,9 @@ var sjFileManager = new sjs.plugin({
             title:   sjFileManager.i18n('Remove file(s)') + '?',
             vars: { message: sjFileManager.i18n('Are you sure you want to permanently delete') },
             arguments: { action: 'remove' }
-        }, 'confirm');
+        }, 'window.confirm');
     },
     renameAction:function(btn){
-        this.actionsBlock.find('img').setClass('unvisible');
         this.makeStek();
 
         if(this.emptyStek()){
@@ -658,57 +677,56 @@ var sjFileManager = new sjs.plugin({
     downloadAction:function(btn){
         this.actionsBlock.find('img').setClass('unvisible');
 
-        this._request(this.actionUrl,{
+        this._request(this.actionUrl, {
             action: 'download',
             path: this.getCurrentPath(),
             files: document.sjs_form
-        }, ResponseProcessor.base, true, {
-            object_id: this.id
-        }, {
-            loader: 'form',
-            method: 'POST'
-        });
+        }).resolve(ResponseProcessor.base);
     },
     permsAction:function(btn){
-        this.actionsBlock.find('img').setClass('unvisible');
         this.makeStek();
-        if(!this.dirStek.length && !this.fileStek.length) return false;
+        if(this.emptyStek()) {
+            return false;
+        }
 
-        sjFileManager.createWindow({
-            id: this.id,
+        var files = this.dirStek.concat(this.fileStek);
+        sjFileManager.createWindow(this, {
             title: sjFileManager.i18n('Permissions'),
-            postData:{
-                action: 'perms',
-                files: this.dirStek.concat(this.fileStek),
-                path: this.getCurrentPath()
-            },
+            vars: { value: files.length > 1 ? '755' : this.getFileInfo(files[0]).mode },
             arguments: { action: 'perms' }
-        },null,this.actionUrl);
+        }, 'actions.perms.permissions_form');
     },
-    dirInfoAction:function(btn){
-        this.actionsBlock.find('img').setClass('unvisible');
+    dirInfoAction:function(btn) {
         this.makeStek();
-        var files = 0;
-        if (this.dirStek || this.fileStek) {
+        var files = [];
+        if (!this.emptyStek()) {
             var files = this.dirStek.concat(this.fileStek);
             files.length = 1;
         }
 
-        sjFileManager.createWindow({
-            id: this.id,
+        var path = this.getCurrentPath(),
+            title = (files[0] || sjs.pathinfo(path.substr(0, path.length - 1)).basename || sjFileManager.i18n('root'));
+
+        this.wait(true);
+        sjFileManager.createWindow(this, {
+            title: sjFileManager.i18n('Information') + ': ' + title,
+            url: this.actionUrl,
+            isModal: false,
+            move: true,
             postData: {
                 files:  files,
                 action: 'dir_info',
-                path: this.getCurrentPath()
+                path: path
             }
-        },null,this.actionUrl);
+        }, 'window.file_info');
     },
     createDirAction:function(btn) {
         var name = sjFileManager.i18n('untitled folder'),
             row = this.addRow({
                 is_dir: true,
                 name: name,
-                basename: name
+                basename: name,
+                fake: true
             }, 'first');
 
         this.reset().checked(row[0], 'selected', true);
@@ -722,8 +740,12 @@ var sjFileManager = new sjs.plugin({
         if (!this.uploader) {
             return false;
         }
-        this.actionsBlock.find('img').setClass('unvisible');
-        this.getWindow('upload', sjFileManager.i18n('Upload Files'));
+        this.getWindow('upload', {
+            title: sjFileManager.i18n('Upload Files'),
+            template: 'window.upload_form',
+            move: true
+        });
+        this.uploader.wakeUp();
     },
     onUploaderReady: function(){
         var mn = this.getFileManager(),
@@ -745,21 +767,18 @@ var sjFileManager = new sjs.plugin({
             (function(){ w.close() }).delay(.5)
         }
     },
-    getWindow: function(name, title) {
+    getWindow: function(name, options) {
         var w = this.windows[name];
         if (w) {
             w.show().position();
             return w;
         }
 
-        w = sjFileManager.createWindow({
-            id: this.id,
-            title: title,
-            content: sjs('#sj' + sjs.capitalize(name) + 'Tmpl').first()[0],
+        w = sjFileManager.createWindow(this, sjs.extend({
+            content: '',
             arguments: { action: name }
-        });
+        }, options || {}), options.template);
 
-        w.find('.sjs_wcontent').setClass('sjs_uploader');
         w.onclose = function(){
             this.hide();
             return false;
@@ -773,7 +792,7 @@ var sjFileManager = new sjs.plugin({
             upl.getFileManager = function() {
                 return sjs.globals.fm[this.__file_manager_id];
             };
-            this.enable('upload')
+            this.enable('upload');
         } else {
             this.disable('upload')
         }
@@ -804,14 +823,15 @@ var ResponseProcessor = {
         mn.getActionButton('paste').setClass('sjsFMdisabled')
             .removeClass('sjsFMenabled');
     },
-    remove: function(content, js, html, wObj){
-       content.onEvent('click',function(e){
+    remove: function(mn, content, js, html, wObj){
+       content.onEvent('click', function(e) {
           var $this = sjs.event.caller(e), i = 2;
-          while (!sjs.nodeName($this,'button') && i--) $this = $this.parentNode;
-          if(!sjs.nodeName($this,'button')) return false;
-
-          var mn=sjs.globals.fm[this.__file_manager_id],
-              wObj = sjs.globals.windows[this.__window_id];
+          while (!sjs.nodeName($this,'button') && i--) {
+              $this = $this.parentNode;
+          }
+          if (!sjs.nodeName($this,'button')) {
+              return false;
+          }
 
           ResponseProcessor.processButtons($this, mn, {
               action: 'remove',
@@ -820,15 +840,11 @@ var ResponseProcessor = {
           this.onclick = null;
           wObj.close(e,$this);
        });
-       content[0].__file_manager_id = this.id;
-       content[0].__window_id = wObj.id;
     },
 
-    perms: function(content, js, html, wObj){
+    perms: function(mn, content, js, html, wObj){
         var permsOct = content.onEvent('click', function(e){
-            var $this=sjs.event.caller(e),
-                mn=sjs.globals.fm[this.__file_manager_id],
-                wObj=sjs.globals.windows[this.__window_id];
+            var $this=sjs.event.caller(e);
 
             if (!sjs.nodeName($this,'input')
                 && !sjs.nodeName($this,'button')
@@ -857,7 +873,7 @@ var ResponseProcessor = {
             }
         }).find('input[type=text]').onEvent('keyup',function(){
             if(!isNaN(Number(this.value))){
-                var num=null,type=new Array('own','gr','oth'),value=this.value.trim();
+                var num,type=new Array('own','gr','oth'),value=this.value.trim();
                 for(var i=0;i<3;i++){
                     num=Number(value.charAt(i))||0;
                     if(num>=4){
@@ -878,14 +894,10 @@ var ResponseProcessor = {
                         this.form['perms['+type[i]+'_exec]'].checked=0;
                     }
                 }
-                num=type=value=null;
             }
         });
-        content[0].__file_manager_id = this.id;
-        content[0].__window_id = wObj.id;
 
         permsOct.trigger('keyup');
-        //permsOct[0].select();
         permsOct[0].title = permsOct[0].value;
     },
 
@@ -906,8 +918,7 @@ var ResponseProcessor = {
         mn.reset();
     },
     rename: function(e){
-        var mn = sjs.globals.fm[this.__file_manage_id],
-            files = mn.dirStek.concat(mn.fileStek);
+        var mn = sjFileManager.get(this);
 
         mn.getContent().unselectable();
         this.value = String(this.value).trim();
@@ -924,23 +935,18 @@ var ResponseProcessor = {
             sjs(this.parentNode).html(sjs.htmlChars(filename));
             return false;
         }
-        mn.actionsBlock.find('img').removeClass('unvisible');
-        sjs.query(mn.actionUrl,{
-            files: files,
+        mn._request(mn.actionUrl, {
+            files: mn.dirStek.concat(mn.fileStek),
             fileNames: [this.value],
             action: 'rename',
             path: mn.getCurrentPath()
-        }, ResponseProcessor.base, true, {
-            object_id: mn.id
-        });
+        }).resolve(ResponseProcessor.base);
     },
 
-    upload: function(content, js, html, wObj){
+    upload: function(fm, content, js, html, wObj){
         var btn = content.find('button[name="upload"]').onEvent('click', function(){
-            var mn = sjs.globals.fm[this.__file_manager_id];
-            mn.uploader.startUpload();
+            fm.uploader.startUpload();
         });
-        btn[0].__file_manager_id = this.id;
     },
 
     processButtons: function(btn, mn, cfg, callback){
@@ -955,49 +961,48 @@ var ResponseProcessor = {
                 if(!apply) return false;
 
                 mn.makeStek();
-                sjs.query(mn.actionUrl,sjs.extend({
-                   path: mn.getCurrentPath()
-                }, cfg || {}),
-                sjs.isFn(callback) && callback || ResponseProcessor.base, 1, {
-                   object_id: mn.id
-                });
-            break;
-            default:
-                mn.actionsBlock.find('img').setClass('unvisible');
+                mn._request(mn.actionUrl, sjs.extend({
+                    path: mn.getCurrentPath()
+                }, cfg || {})).resolve(sjs.isFn(callback) && callback || ResponseProcessor.base);
             break;
         }
     }
 };
 
 sjFileManager.createWindow = function(fm, cfg, tmplId){
-    if (contentType) {
-        var vars = cfg.vars || {};
-        vars.i18n = sjFileManager.i18n;
-        cfg.content = fm.view.get('window.' + tmplId)(vars);
-        delete cfg.vars;
-    }
-
-    var w = new sjWindow(url, sjs.extend({
+    var w = new sjWindow(cfg.url, sjs.extend({
         title: sjFileManager.i18n('Information'),
         tmpl:'#sjWindowTmpl',
         isModal:true,
-        action:'001',
-        onChangeSize:function(content){
-            var size = content.getSize();
-            sjs(this.window).css('width', size.width + size.margin[1] + size.margin[3] + 'px')
-        }
+        action:'001'
     }, cfg || {}), function(content, js, html) {
-        action = ResponseProcessor[this.arguments.action];
-
-        if (js && js.response && js.response.status == 'error'){
-            fm.notify('serverError', js, html);
-        } else if (sjs.isFn(action)) {
-            action.call(fm, content, js, html, this);
+        var tmpl = '', vars = cfg.vars || {}, self = this;
+        if (tmplId) {
+            tmpl = fm.view.get(tmplId)
+            vars.i18n = sjFileManager.i18n;
+            vars = sjs.extend(vars, js || {});
         }
-        this.position();
-    });
+        self.hide();
+        sjs.when(tmpl, function (tmpl) {
+            var action = ResponseProcessor[self.arguments.action];
+            if (sjs.isFn(tmpl)) {
+                content.html(tmpl(vars));
+            }
+            content.width('auto').height('auto');
+            self.show();
 
-    return w
+            if (js && js.response && js.response.status == 'error'){
+                fm.notify('serverError', js, html);
+                return self.close();
+            } else if (sjs.isFn(action)) {
+                action(fm, content, js, html, self);
+            }
+            fm.wait(false);
+            self.toInnerSize();
+            self.position();
+        });
+    });
+    return w;
 };
 
 var Config = {
@@ -1183,6 +1188,7 @@ sjFileManager.link = function(obj, id) {
 sjFileManager.getUploader = function(url, cfg){
     var baseDir = url.charAt(url.length - 1) == '/' ? url : sjs.pathinfo(url).dirname;
     return new SWFUpload(sjs.extend({
+        lazy: true,
         upload_url: url,
         flash_url: baseDir + "/js/swfupload/swfupload.swf",
         file_post_name: 'files',

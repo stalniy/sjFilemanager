@@ -60,9 +60,10 @@ try {
             'basename' => $info['basename'],
             'name'  => $filename,
             'size'  => $is_dir ? '' : $fs->formatSize($file) . 'b',
-            'modify'=> $fs->formatDate(filemtime($file)),
+            'modified_at'=> $fs->formatDate(filemtime($file)),
             'type'  => $extension,
-            'is_dir'=> $is_dir
+            'is_dir'=> $is_dir,
+            'mode'  => $fs->getMode($file)
         );
     }
 

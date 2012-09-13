@@ -418,7 +418,8 @@ class iFilesystem extends sfFilesystem implements sjFilesystem {
      * @return string
      */
     public function getMode($target) {
-        return substr(decoct(fileperms($target)), 2);
+        $mode = substr(decoct(fileperms($target)), 2);
+        return isset($mode[3]) ? substr($mode, 1) : $mode;
     }
 
     /**
@@ -644,7 +645,7 @@ class iFilesystem extends sfFilesystem implements sjFilesystem {
             if (isset($path['filename'])) {
                 $path['filename'] = substr($path['filename'], 1);
             }
-        } elseif ($path[0] == 'a') {
+        } elseif ($path && $path[0] == 'a') {
             $path = substr($path, 1);
         } elseif ($flags == PATHINFO_DIRNAME) {
             $path = str_replace(DIRECTORY_SEPARATOR . 'a', DIRECTORY_SEPARATOR, $path);

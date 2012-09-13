@@ -284,7 +284,6 @@ var sjWindow = new sjs.plugin({
         sjs(this.window).css('display', 'block');
         this.onChangeContent(sjs('.upload_img',this.window));
         if(sjs.isFn(this.onload)) this.onload.apply(this,[content].concat(args));
-
     },
     onChangeContent:function(img){
         if(img[0].sjs_window_src){
