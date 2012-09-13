@@ -9,6 +9,7 @@
     <script type="text/javascript" src="../../web/js/sjs/sjs.request.js"></script>
     <script type="text/javascript" src="../../web/js/sjs/sjs.animate.js"></script>
     <script type="text/javascript" src="../../web/js/sjs/sjs.mouse.js"></script>
+    <script type="text/javascript" src="../../web/js/sjs/sjs.tmpl.js"></script>
     <script type="text/javascript" src="../../web/js/windows.js"></script>
     <script type="text/javascript" src="../../web/js/filemaneger.js"></script>
     <script type="text/javascript" src="../../web/js/swfupload/handlers.js"></script>
@@ -20,8 +21,9 @@
             sjFileManager.i18n($_LANG);
 
             var baseUrl = '../../web/', cfg = sjFileManager.configure({
-                url:  baseUrl,
-                root: '/uploads/sjFilemanager'
+                url:  baseUrl + 'index.php',
+                root: '/uploads/sjFilemanager',
+                tmplUrl: baseUrl + 'tmpl'
             });
 
             cfg.get('fm.listeners.ready').push(function() {

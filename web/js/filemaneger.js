@@ -177,7 +177,7 @@ var sjFileManager = new sjs.plugin({
         return this;
     },
     checked:function(tr,cls,chk){
-        var checkbox = tr.firstChild.firstChild;
+        var checkbox = sjs('input', tr.cells[0])[0];
         tr.className=cls;
         if (sjs.nodeName(checkbox,'input')) {
             checkbox.checked=chk;
@@ -1097,10 +1097,12 @@ sjFileManager.getInstance = function() {
         }
 
         Config.set('fm.files', js.files).set('fm.container', content);
+        Config.get('fm.listeners.ready').unshift(function() {
+            Instance.resolve(this);
+            Instance = this;
+        });
         var fm = new sjFileManager(Config.get('fm'), Config.get('fm.listeners'));
         fm.windows.main = this;
-        Instance.resolve(fm);
-        Instance = fm;
 
         this.position().toInnerSize();
         sjs.className.set(this.window, 'sjFilemanagerWindow');

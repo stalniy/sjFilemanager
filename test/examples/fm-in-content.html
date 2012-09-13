@@ -8,6 +8,8 @@
     <script type="text/javascript" src="../../web/js/sjs/sjs.js"></script>
     <script type="text/javascript" src="../../web/js/sjs/sjs.request.js"></script>
     <script type="text/javascript" src="../../web/js/sjs/sjs.animate.js"></script>
+    <script type="text/javascript" src="../../web/js/sjs/sjs.tmpl.js"></script>
+    <script type="text/javascript" src="../../web/js/sjs/sjs.mouse.js"></script>
     <script type="text/javascript" src="../../web/js/filemaneger.js"></script>
     <script type="text/javascript" src="../../web/js/windows.js"></script>
     <script type="text/javascript" src="../../web/js/swfupload/handlers.js"></script>
@@ -19,21 +21,22 @@
             sjFileManager.i18n($_LANG);
 
             var baseUrl = '../../web/';
-            sjs.query(baseUrl, {
-                tmpl: 'window',
-                show_actions: 1
-            }, function(js, html) {
+            sjs.query(baseUrl + 'index.php', null, function (js, html) {
                 if (js && js.response && js.response.status == 'error') {
-                    alert(js.response.msg);
+                    alert("Folder is not readable");
                     return false;
                 }
-                sjs('#container').html(html);
-
-                var fm = new sjFileManager(sjs('#sjFilemanager'), {
-                    actionUrl: baseUrl,
-                    rootUrl: '/uploads/sjFilemanager'
+                var fm = new sjFileManager({
+                    files: js.files,
+                    container: '#container',
+                    actionUrl: baseUrl + 'index.php',
+                    rootUrl: '/uploads/sjFilemanager',
+                    templateUrl: baseUrl + 'tmpl'
                 });
-                fm.setUploader(sjFileManager.getUploader(baseUrl))
+
+                fm.addListener('ready', function() {
+                    this.setUploader(sjFileManager.getUploader(baseUrl));
+                });
             }, 1);
         })
     </script>
