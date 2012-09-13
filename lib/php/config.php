@@ -18,8 +18,6 @@ function pathIn($path, $base) {
     return file_exists($base . $check);
 }
 
-$_SYSTEM['tmpl_params'] = array();
-
 if (!function_exists('json_decode')) {
     throw new RuntimeException("PHP JSON module should be installed. Function json_decode does not exist");
 }

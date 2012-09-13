@@ -13,12 +13,10 @@
  */
 
 require dirname(__FILE__) . '/../lib/php/config.php';
-require $sjConfig['lib_dir'] . '/model/iView.class.php';
 require $sjConfig['lib_dir'] . '/model/sfFilesystem.class.php';
 require $sjConfig['lib_dir'] . '/model/iFilemanager.class.php';
 require $sjConfig['lib_dir'] . '/lang/lang_' . $sjConfig['lang'] . '.php';
 
-iView::setRoot($sjConfig['lib_dir'] . '/view');
 $_SYSTEM['i18n']    = new sjI18n($_SYSTEM['lang']);
 $_SYSTEM['is_ajax'] = isset($_REQUEST['_JsRequest']) && strpos($_REQUEST['_JsRequest'], '-') !== false;
 if ($_SYSTEM['is_ajax']) {
@@ -32,7 +30,6 @@ if ($_SYSTEM['is_ajax']) {
 
 $action = isset($_REQUEST['action']) ? trim($_REQUEST['action']) : null;
 $_REQUEST['action']  = $action;
-$_SYSTEM['template'] = isset($_REQUEST['tmpl']) ? $_REQUEST['tmpl'] : '';
 
 try {
     $_SYSTEM['i18n']->setHiddenStrings(array(
