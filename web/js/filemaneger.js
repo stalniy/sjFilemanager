@@ -139,7 +139,7 @@ var sjFileManager = new sjs.plugin({
 
         switch (where) {
             case 'first':
-                !file.fake && this.files.unshift(file);
+                !file.fake && this.files.source.unshift(file);
                 var wrap = this.getContent().find('tbody');
                 if (wrap.first().hasClass('parent-dir')) {
                     row.insertAfter(wrap.first());
@@ -148,7 +148,7 @@ var sjFileManager = new sjs.plugin({
                 }
                 break;
             default:
-                !file.fake && this.files.push(file);
+                !file.fake && this.files.source.push(file);
                 this.getContent().find('tbody').append(row);
                 break;
         }
