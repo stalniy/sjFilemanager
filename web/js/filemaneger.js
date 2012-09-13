@@ -438,7 +438,7 @@ var sjFileManager = new sjs.plugin({
               || has_files && !has_dirs  && !a.hasClass('onlyDir')
               || has_files && has_dirs   && !a.hasClass('onlyDir') && !a.hasClass('onlyFile')
               || !a.hasClass('sjsFMdinamic')
-              || this.requestData.files
+              || a.data('params')
             );
         return result;
     },
@@ -584,7 +584,7 @@ var sjFileManager = new sjs.plugin({
         this.makeStek();
         this.getActionButton('paste').removeClass('sjsFMdisabled')
             .setClass('sjsFMenabled')
-            .data('paste', {
+            .data('params', {
                 files: [].concat(this.fileStek, this.dirStek),
                 baseDir: this.getCurrentPath(),
                 onlyCopy: onlyCopy || false
@@ -594,9 +594,7 @@ var sjFileManager = new sjs.plugin({
         this.cutAction(btn, true);
     },
     pasteAction:function(btn){
-        console.log(123, btn)
-        var post = sjs(btn).data('paste');
-        console.log(post)
+        var post = sjs(btn).data('params');
         if(!post || !post.files || !post.files.length || !post.onlyCopy
            && post.baseDir == this.getCurrentPath()
         ) {
@@ -608,16 +606,14 @@ var sjFileManager = new sjs.plugin({
             action: 'paste',
             path: this.getCurrentPath()
         }, post)).resolve(ResponseProcessor.paste);
-        //sjs(btn).data('paste', null);
+        sjs(btn).data('params', null);
     },
     removeAction:function(btn){
-        this.actionsBlock.find('img').setClass('unvisible');
-
-        sjFileManager.createWindow({
-            id: this.id,
-            title: sjFileManager.i18n('Are you sure you want to permanently delete') + '?',
+        sjFileManager.createWindow(this, {
+            title:   sjFileManager.i18n('Remove file(s)') + '?',
+            vars: { message: sjFileManager.i18n('Are you sure you want to permanently delete') },
             arguments: { action: 'remove' }
-        },'confirm');
+        }, 'confirm');
     },
     renameAction:function(btn){
         this.actionsBlock.find('img').setClass('unvisible');
@@ -800,7 +796,7 @@ var ResponseProcessor = {
         return mn;
     },
     opendir: function(js, html, mn) {
-        mn.setFiles(js.files).displayFullPath(js.files.cur_dir);
+        mn.setFiles(js.files).displayFullPath(mn.getCurrentPath());
     },
     paste: function(js,txt,mn){
         ResponseProcessor.base(js, txt, mn);
@@ -809,8 +805,6 @@ var ResponseProcessor = {
             .removeClass('sjsFMenabled');
     },
     remove: function(content, js, html, wObj){
-       this.actionsBlock.find('img').removeClass('unvisible');
-
        content.onEvent('click',function(e){
           var $this = sjs.event.caller(e), i = 2;
           while (!sjs.nodeName($this,'button') && i--) $this = $this.parentNode;
@@ -975,40 +969,35 @@ var ResponseProcessor = {
     }
 };
 
-sjFileManager.createWindow = function(cfg, contentType, url, onclose){
-   if (contentType) {
-      cfg.content = sjs('#sj'+sjs.capitalize(contentType)+'Tmpl')[0].innerHTML
-   }
+sjFileManager.createWindow = function(fm, cfg, tmplId){
+    if (contentType) {
+        var vars = cfg.vars || {};
+        vars.i18n = sjFileManager.i18n;
+        cfg.content = fm.view.get('window.' + tmplId)(vars);
+        delete cfg.vars;
+    }
 
-   if (cfg.arguments) {
-      cfg.arguments.file_manage_id = cfg.id;
-   } else {
-      cfg.arguments = { file_manage_id: cfg.id };
-   }
-
-   var w=new sjWindow(url, sjs.extend({
-      title: sjFileManager.i18n('Information'),
-      tmpl:'#sjWindowTmpl',
-      isModal:true,
-      action:'001',
-      onChangeSize:function(content){
-          var size = content.getSize();
-          sjs(this.window).css('width', size.width + size.margin[1] + size.margin[3] + 'px')
-      }
-   }, cfg || {}),function(content,js,html) {
-      var fm = sjs.globals.fm[this.arguments.file_manage_id],
+    var w = new sjWindow(url, sjs.extend({
+        title: sjFileManager.i18n('Information'),
+        tmpl:'#sjWindowTmpl',
+        isModal:true,
+        action:'001',
+        onChangeSize:function(content){
+            var size = content.getSize();
+            sjs(this.window).css('width', size.width + size.margin[1] + size.margin[3] + 'px')
+        }
+    }, cfg || {}), function(content, js, html) {
         action = ResponseProcessor[this.arguments.action];
 
-      if (js && js.response && js.response.status == 'error'){
-        fm.notify('serverError', js, html);
-        return this.close();
-      } else if (sjs.isFn(action)) {
-        action.call(fm, content, js, html, this);
-      }
-      this.position();
-   });
+        if (js && js.response && js.response.status == 'error'){
+            fm.notify('serverError', js, html);
+        } else if (sjs.isFn(action)) {
+            action.call(fm, content, js, html, this);
+        }
+        this.position();
+    });
 
-   return w
+    return w
 };
 
 var Config = {
@@ -1102,7 +1091,7 @@ sjFileManager.getInstance = function() {
             throw "Invalid server response";
         }
 
-        Config.set('fm.files', js.files).set('fm.container', this.getBody());
+        Config.set('fm.files', js.files).set('fm.container', content);
         var fm = new sjFileManager(Config.get('fm'), Config.get('fm.listeners'));
         fm.windows.main = this;
         Instance.resolve(fm);
