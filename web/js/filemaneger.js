@@ -582,7 +582,7 @@ var sjFileManager = new sjs.plugin({
     },
     opendirAction:function(dir) {
         var tr = this.lastSelected;
-        this._request(this.actionUrl, { dirpath: dir })
+        this._request(this.actionUrl, { path: dir })
             .resolve(ResponseProcessor.opendir)
             .reject(function(js, html) {
                 sjs(tr).find('label').removeClass('loading');
@@ -1058,7 +1058,7 @@ sjFileManager.configure = function (options) {
 
     var url = sjs.trim(options.url);
     if (options.opendir) {
-        url += (url.indexOf('?') == -1 ? '?' : '&') + 'dirpath=' + options.opendir;
+        url += (url.indexOf('?') == -1 ? '?' : '&') + 'path=' + options.opendir;
     }
 
     Config.set('url', url)
@@ -1294,7 +1294,7 @@ sjFileManager.create = function(options) {
                 }
             }
         }).on('data', function (data) {
-            data.dirpath = fm.getCurrentPath();
+            data.path = fm.getCurrentPath();
         });
 
         fm.addListener('opendir', function () {
