@@ -16,7 +16,6 @@ module SjFileManager
 
       basename.gsub!(Regexp.new('[' + @@badFileChars + ']+'), '-')
       basename.gsub!(/[\s-]+/, '-')
-      puts basename
       dirname << File::Separator unless dirname == File::Separator
       return dirname + basename
     end
@@ -38,7 +37,7 @@ module SjFileManager
 
       files = []
       Dir.glob(path) do |file|
-        if !file.end_with?('./') || skip_regexp && file !~ skip_regexp || !options[:only_files].nil? && File.file?(file)
+        if !(skip_regexp || options[:only_files]) || skip_regexp && file !~ skip_regexp || options[:only_files] && File.file?(file)
           files << file
         end
       end
@@ -79,8 +78,8 @@ module SjFileManager
 
     def dirsize(path)
       size = 0;
-      read_dir(path, 'r', only_files: true).each do |file|
-        size += File.new(file).size
+      read_dir(path, 'r', :only_files => true).each do |file|
+        size += File.stat(file).size
       end
 
       return size
@@ -89,11 +88,12 @@ module SjFileManager
     def format_size(file)
       raise SjException, i18n.__('Permissions denied for "%s"', file) unless File.readable?(file)
 
-      format_size_value(File.directory?(file) ? dirsize(file) : File.new(file).size)
+      format_size_value(File.directory?(file) ? dirsize(file) : File.stat(file).size)
     end
 
     def format_size_value(size)
       base = 1000.0
+      size = size.to_f
       return size if size < base
 
       type = -1
@@ -102,8 +102,18 @@ module SjFileManager
         type +=1
       end
 
-      sufix = 'kMGT'
-      return ("%.2f" % size) + ' ' + sufix[type]
+      sufix = %w(k M G T)
+      return ("%.2f" % size) + " " + sufix[type]
+    end
+
+    def chmod(files, mode)
+      unless files.kind_of?(::Array)
+        files = [files]
+      end
+
+      files.each do |file|
+        File.chmod(mode, file)
+      end
     end
 
     def get_mode(mode)
@@ -114,9 +124,9 @@ module SjFileManager
       data = File.stat(path)
       return {
         :mode    => get_mode(data.mode),
-        :atime   => format_date(data.atime),
-        :ctime   => format_date(data.ctime),
-        :mtime   => format_date(data.mtime),
+        :atime   => i18n.format_date(data.atime),
+        :ctime   => i18n.format_date(data.ctime),
+        :mtime   => i18n.format_date(data.mtime),
         :blksize => data.blksize,
         :blocks  => data.blocks,
         :dev     => data.dev,
@@ -145,7 +155,7 @@ module SjFileManager
       info = get_pathinfo(file)
 
       exp = info[:filename].match(/([^(]+)\((\d+)\)/) || [];
-      index = exp[2] || 1
+      index = exp[2].to_i == 0 ? 1 : exp[2].to_i
       info[:filename] = exp[1] unless exp[1].nil?
 
       has_ext = info[:extension].empty?
@@ -161,13 +171,17 @@ module SjFileManager
     end
 
     def rename(orig, target)
-      raise SjException, i18.__('Cannot rename because the target "%s" already exist.', target)
+      raise SjException, i18n.__('Cannot rename because the target "%s" already exist.', target) if File.exists?(target)
 
       File.rename(orig, target)
     end
 
     def mkdirs(path, mode = 0777)
-      FileUtils.mkdirs(path, :mode => mode)
+      begin
+        FileUtils.mkpath(path, :mode => mode)
+      rescue
+        return nil
+      end
     end
 
     def copy(orig, target, options = {})
@@ -180,10 +194,11 @@ module SjFileManager
         end
 
         image = false;
-        unless options['thumbs'].nil? && options['images'].nil?
+        unless options['thumbs'].nil? || options['images'].nil?
           image = create_image(orig, options['override'])
         end
 
+        files = []
         if image
           files = save_image(image, target, options)
         else
@@ -199,8 +214,9 @@ module SjFileManager
             mostRecent  = stat_origin.mtime > stat_origin.mtime
           end
 
-          if options['override'] || !File.exists?(target) || mostRecent
+          if options['override'] || !File.directory?(target) && !File.exists?(target) || mostRecent
             FileUtils.copy(orig, target)
+            files << target
           end
         end
 
@@ -209,7 +225,10 @@ module SjFileManager
 
     def remove(files)
       begin
-        FileUtils.rm_r(files)
+        files = [files] unless files.kind_of?(::Array)
+        files.each do |file|
+          FileUtils.rm_r(file)
+        end
       rescue
         raise SjException, i18.__('Unable to remove file or directory. Maybe not enough permissions?')
       end
@@ -218,6 +237,14 @@ module SjFileManager
     def mirrors(orig, dest)
       begin
         FileUtils.cp_r(orig, dest)
+
+        if File.directory?(orig)
+          read_dir(orig, "r").map do |file|
+            file.sub(orig, dest)
+          end
+        else
+          [dest]
+        end
       rescue
         raise SjException, i18.__('Unable to copy "%s" to "%s"', orig, dest)
       end
@@ -236,6 +263,10 @@ module SjFileManager
             args[0] = sprintf(*args);
         end
         args[0]
+      end
+
+      def format_date(date)
+        date
       end
     end
   end

@@ -1,9 +1,9 @@
 module SjFileManager
-  class DirManager < Manager
-    def respond
-      @response = {:cur_dir => '', :source => [] }
+  class DirController < Controller
+    def dispatch
+      response = {:cur_dir => '', :source => [] }
 
-      cur_dir = get_cur_dir(@context.params['path'] || '')
+      cur_dir = get_dir(@context.params['path'] || '')
       limit   = @context.config['max_files_per_page'].to_i
       offset  = 0
       page    = 1
@@ -22,23 +22,23 @@ module SjFileManager
         :limit  => limit
       })
 
-      @response[:cur_dir] = cur_dir
+      response[:cur_dir] = cur_dir
       result.each do |file|
-        info = fs.get_pathinfo(file)
+        info   = fs.get_pathinfo(file)
         is_dir = File.directory?(file)
-        filename =
 
-        @response[:source] << {
+        response[:source] << {
           :basename => info[:basename],
           :name     => is_dir ? info[:basename] : info[:filename],
-          :size     => fs.format_size(file).to_s + "b",
+          :size     => File.file?(file) ? fs.format_size(file).to_s + "b" : "",
           :modified_at => @context.i18n.format_date(File.mtime(file)),
           :type     => info[:extension],
           :is_dir   => is_dir,
           :mode     => fs.get_mode(File.stat(file).mode)
         }
       end
-    end
 
+      return { :files => response }
+    end
   end
 end

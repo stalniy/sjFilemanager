@@ -1,22 +1,27 @@
+require 'rubygems'
 require 'json'
 require 'date'
+require 'rack/request'
+require 'rack/response'
 require './model/fs'
 
 module SjFileManager
   class Application
     @@base_dir = File.dirname(File.dirname(Dir.pwd))
-    @params
     @config
     @i18n
+    @request
+    @response
 
-    attr_reader :params, :config, :i18n
+    attr_reader :config, :i18n, :request, :response
 
     def initialize
       @config = read_config('../../web/config.json')
       @config['lib_dir'].sub!('%BASE_DIR%', @@base_dir)
+      @config['root'] = @config['root'][0...-1] if @config['root'].end_with?(File::Separator)
 
       begin
-        i18n = read_config('../i18n/lang_' + @config['lang'] + '.json')
+        i18n = read_config('../i18n/' + @config['lang'] + '.json')
       rescue SjException
         i18n = {}
       end
@@ -24,21 +29,58 @@ module SjFileManager
     end
 
     def call(env)
+      return [200, { 'Content-Type' => 'application/xml'}, File.open('crossdomain.xml').read] if env['PATH_INFO'] == '/crossdomain.xml'
+
+      @request  = Rack::Request.new(env)
+      @response = Rack::Response.new([], 200)
+      @response['Content-Type'] = 'application/json'
+
       @config['root'].sub!('%DOCUMENT_ROOT%', env['DOCUMENT_ROOT'] || '')
       @i18n.set_hidden_strings({
         @@base_dir      => '*base*',
         @config['root'] => '*root*'
       })
 
-      parse_query(env['QUERY_STRING']);
-
       begin
-        response = Manager.process(self)
+        Controller.dispatch(self)
       rescue SjException => e
-        response = [e.respond]
+        #@response.status = 400
+        @response.write prepare_response(e.respond)
       end
 
-      [200, {"Content-Type" => "application/json"}, response]
+      @response.finish
+    end
+
+    def params
+      @request.params
+    end
+
+    def files
+      return nil unless @request.post?
+
+      files = @request.POST.reject do |k, v|
+        !v[:tempfile] || !v[:tempfile].kind_of?(Tempfile)
+      end
+
+      return files
+    end
+
+    def prepare_response(data)
+      id, type = (params['_JsRequest'] || '').split('-', 2)
+      text = {
+        :id   => id.to_i,
+        :js   => data,
+        :text => ""
+      }.to_json
+
+      unless !type || type == 'xml'
+        text = (type == 'form' ? 'top && top.$_Request' : '$_Request') + ".dataReady(#{text})\n"
+        if type == 'form'
+          text = '<script type="text/javascript"><!--' + "\n#{text}" + '//--></script>'
+        end
+      end
+
+      return text
     end
 
     private
@@ -112,10 +154,9 @@ module SjFileManager
     end
   end
 
-  class Manager
+  class Controller
     @context
-    @response
-    @@managers = {}
+    @@controllers = {}
 
     class << self
       protected :new
@@ -123,39 +164,47 @@ module SjFileManager
 
     def initialize(ctx)
       @context = ctx
-      @response = {}
     end
 
-    def self.process(ctx)
-      cls = nil
+    def self.dispatch(ctx)
       if ctx.params['manager_type'] == 'media'
           require './ctrl/mm_action';
-          cls = MediaManager
+          controller_type = MediaController
       elsif !ctx.params['action'].nil? && !ctx.params['action'].empty?
           require './ctrl/fm_action';
-          cls = FileManager
+          controller_type = FileController
       else
           require './ctrl/fm_read_dir';
-          cls = DirManager
+          controller_type = DirController
       end
 
-      if @@managers[cls.to_s].nil?
-        @@managers[cls.to_s] = cls.new(ctx)
+      controller = @@controllers[controller_type.to_s]
+      if controller.nil?
+        controller = controller_type.new(ctx)
+        @@controllers[controller_type.to_s] = controller
       end
 
-      @@managers[cls.to_s].respond
-      return @@managers[cls.to_s]
-    end
+      result = controller.dispatch
+      if result
+        unless ctx.params['print_error']
+          ctx.response.write ctx.prepare_response(result)
+        else
+          if result[:response][:status] != 'correct'
+            ctx.response.write result[:response][:msg]
+          else
+            ctx.response.write ""
+          end
+        end
+      end
 
-    def each
-      yield @response.to_json
+      return ctx.response
     end
 
     private
-      def get_cur_dir(path)
+      def get_dir(path)
         return '' if path.empty?
 
-        realpath = File.realpath(@context.config['root'] + File::Separator + path);
+        realpath = File.expand_path(@context.config['root'] + File::Separator + path);
 
         realLength = realpath.length
         rootLength = @context.config['root'].length;
@@ -167,6 +216,13 @@ module SjFileManager
         end
 
         return cur_dir
+      end
+
+      def get_dir!(path)
+        dir = get_dir(path)
+
+        raise SjException, @context.i18n.__('Access denied') if dir.empty?
+        return dir
       end
   end
 end
