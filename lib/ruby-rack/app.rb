@@ -21,7 +21,6 @@ module SjFileManager
       @response['Content-Type'] = 'application/json'
 
       configure
-      @request.env['DOCUMENT_ROOT'] = @@base_dir
 
       puts @request.public_methods.inspect
       @i18n.set_hidden_strings({
@@ -90,6 +89,7 @@ module SjFileManager
         end
         @config['root'] = File.expand_path(@config['root'])
         @config['root'] = @config['root'][0...-1] if @config['root'].end_with?(File::Separator)
+        @request.env['DOCUMENT_ROOT'] ||= @@base_dir
 
         begin
           i18n = read_config('../i18n/' + @config['lang'] + '.json')
