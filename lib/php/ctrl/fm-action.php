@@ -94,12 +94,12 @@ try {
                 $fs->chmod($files, eval("return(0{$fileperms});"));
             }
         break;
-        case 'dir_info':
+        case 'stat':
             $filename = $path;
             if ($has_files) {
                 $filename = reset($files);
             }
-            $stat = array('type' => filetype($filename)) + $fs->stat($filename);
+            $stat = $fs->stat($filename);
             $stat['size'] = $fs->formatSize($filename) . 'b';
             $_RESULT['file_info'] = $stat;
         break;

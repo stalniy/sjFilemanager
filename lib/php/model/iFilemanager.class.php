@@ -333,13 +333,14 @@ class iFilesystem extends sfFilesystem implements sjFilesystem {
      * @return array
      */
     public function stat($target) {
-        $info = stat($target);
-        $info['mode'] = $this->getMode($target);
-        $info['atime'] = date('Y-m-d H:i:s', $info['atime']);
-        $info['mtime'] = date('Y-m-d H:i:s', $info['mtime']);
-        $info['ctime'] = date('Y-m-d H:i:s', $info['ctime']);
+        $data = array('type' => filetype($target));
 
-        return array_slice($info, 13);
+        $info = stat($target);
+        $data['mode'] = $this->getMode($target);
+        $data['mtime'] = date('Y-m-d H:i:s', $info['mtime']);
+        $data['size'] = $info['size'];
+
+        return $data;
     }
 
     /**
