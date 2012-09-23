@@ -15,27 +15,15 @@ module SjFileManager
 
     attr_reader :config, :i18n, :request, :response
 
-    def initialize
-      @config = read_config('../../web/config.json')
-      @config['lib_dir'].sub!('%BASE_DIR%', @@base_dir)
-      @config['root'] = @config['root'][0...-1] if @config['root'].end_with?(File::Separator)
-
-      begin
-        i18n = read_config('../i18n/' + @config['lang'] + '.json')
-      rescue SjException
-        i18n = {}
-      end
-      @i18n = I18n.new(i18n)
-    end
-
     def call(env)
-      return [200, { 'Content-Type' => 'application/xml'}, File.open('crossdomain.xml').read] if env['PATH_INFO'] == '/crossdomain.xml'
-
       @request  = Rack::Request.new(env)
       @response = Rack::Response.new([], 200)
       @response['Content-Type'] = 'application/json'
 
-      @config['root'].sub!('%DOCUMENT_ROOT%', env['DOCUMENT_ROOT'] || '')
+      configure
+      @request.env['DOCUMENT_ROOT'] = @@base_dir
+
+      puts @request.public_methods.inspect
       @i18n.set_hidden_strings({
         @@base_dir      => '*base*',
         @config['root'] => '*root*'
@@ -84,8 +72,33 @@ module SjFileManager
     end
 
     private
-      def parse_query(query)
-        @params = Rack::Utils.parse_nested_query(query)
+      def base_url
+        url = @request.scheme + "://"
+        url << @request.host
+
+        if @request.scheme == "https" && @request.port != 443 ||
+            @request.scheme == "http" && @request.port != 80
+          url << ":#{@request.port}"
+        end
+
+        url
+      end
+
+      def configure
+        @config = read_config('../../web/config.json') do |content|
+          content.gsub('%BASE_DIR%', @@base_dir).gsub('%BASE_URL%', base_url)
+        end
+        @config['root'] = File.expand_path(@config['root'])
+        @config['root'] = @config['root'][0...-1] if @config['root'].end_with?(File::Separator)
+
+        begin
+          i18n = read_config('../i18n/' + @config['lang'] + '.json')
+        rescue SjException
+          i18n = {}
+        end
+        @i18n = I18n.new(i18n)
+
+        self
       end
 
       def read_config(path)
@@ -95,7 +108,11 @@ module SjFileManager
 
         data = {}
         File.open(path) do |f|
-          data = JSON.parse f.read.gsub(/^\s*(?:\/\/|#).+\s/, '')
+          content = f.read.gsub(/^\s*(?:\/\/|#).+\s/, '')
+          if block_given?
+            content = yield(content)
+          end
+          data = JSON.parse content
         end
         return data
       end

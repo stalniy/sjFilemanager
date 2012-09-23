@@ -96,9 +96,16 @@ module SjFileManager
       filename = fm.empty? ? get_path : get_files!.first
 
       stat = fm.filesystem.stat(filename)
-      stat[:size] << 'b'
+      data = { :mode => nil, :size => nil, :mtime => nil, :type => nil }
+      data.each_key do |k|
+        data[k] = stat[k]
+      end
 
-      return { :file_info => stat }
+      data[:size] << @context.i18n.__('b')
+      data[:mtime] = @context.i18n.format_date(data[:mtime])
+      data[:type].capitalize!
+
+      return { :file_info => data }
     end
 
     def create_dir

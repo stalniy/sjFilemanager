@@ -1,4 +1,5 @@
 require 'fileutils'
+require 'RMagick'
 
 module SjFileManager
   class Filesystem
@@ -106,6 +107,30 @@ module SjFileManager
       return ("%.2f" % size) + " " + sufix[type]
     end
 
+    def parse_size_value(size)
+      return 0 if !size || size.empty?
+
+      base = 1000.0
+      data = size.strip.scan(/^(\d+)\s*(\w*)$/)
+      return 0 unless data[0][0]
+
+      size = data[0][0].to_f
+      type = data[0][1] || 'b'
+
+      case data[0][1][1]
+      when 'T'
+        size * base * base * base * base
+      when 'G'
+        size * base * base * base
+      when 'M'
+        size * base * base
+      when 'k'
+        size * base
+      end
+
+      size
+    end
+
     def chmod(files, mode)
       unless files.kind_of?(::Array)
         files = [files]
@@ -124,9 +149,9 @@ module SjFileManager
       data = File.stat(path)
       return {
         :mode    => get_mode(data.mode),
-        :atime   => i18n.format_date(data.atime),
-        :ctime   => i18n.format_date(data.ctime),
-        :mtime   => i18n.format_date(data.mtime),
+        :atime   => data.atime,
+        :ctime   => data.ctime,
+        :mtime   => data.mtime,
         :blksize => data.blksize,
         :blocks  => data.blocks,
         :dev     => data.dev,
@@ -189,12 +214,12 @@ module SjFileManager
         convert_name = options['dynamic_name'] || false
 
         options['override'] = options['override'] || false
-        if convert_name
+        if convert_name || !options['override']
           target = dynamic_filename(target)
         end
 
         image = false;
-        unless options['thumbs'].nil? || options['images'].nil?
+        if options['thumbs'].kind_of?(::Hash) || options['images'].kind_of?(::Hash)
           image = create_image(orig, options['override'])
         end
 
@@ -251,10 +276,122 @@ module SjFileManager
     end
 
     private
-      def save_image(img, where, options = [])
+      def adaptive_resize(img, x, y, mode = 'auto', options = {})
+        width  = img.columns
+        height = img.rows
+
+        mode = (width >= height ? 'width' : 'height') if mode == 'auto'
+
+        case mode
+        when 'width'
+          n = width.to_f / height
+          y = (x / n).round
+        when 'height'
+          n = height.to_f / width
+          x = (y / n).round
+        when 'crop'
+          x = width if x > width
+          y = height if y > height
+
+          case options['type']
+          when 'left-top'
+            _x = _y = 0
+          when 'left-bottom'
+            _x = 0
+            _y = height - y
+          when 'center'
+            _x = ((width - x) / 2.0).floor
+            _y = ((height - y) / 2.0).floor
+          when 'right-top'
+            _x = width - x
+            _y = 0
+          when 'right-bottom'
+            _x = width - x
+            _y = height - y
+          else
+            _x = options['x'] || 0
+            _y = options['y'] || 0
+          end
+
+          img.crop!(_x, _y, x, y)
+          return img
+        else
+          n = width.to_f / height
+          x = x * width
+          y = x / n
+          x = x.round
+          y = y.round
+        end
+
+        img.resize!(x, y)
+        return img
+      end
+
+      def resize_image(img, target, options)
+        return nil if !options || options.empty?
+
+        thumbs = []
+        info = get_pathinfo(target)
+        options.each_pair do |prefix, config|
+          tmb = img.dup
+
+          if config['width'] && config['height'] && config['type'] && (
+            !config['check_size'] ||
+            tmb.columns > config['width'] ||
+            tmb.rows > config['height'])
+            adaptive_resize(tmb, config['width'], config['height'], config['type'])
+          end
+
+          if config['crop']
+            cfg = config['crop'].kind_of?(::Hash) ? config['crop'] : { 'type' => config['crop'] }
+            adaptive_resize(tmb, config['width'], config['height'], 'crop', cfg)
+          end
+
+          tmbpath = info[:dirname] + File::Separator + prefix + info[:basename]
+          begin
+            dirname = File.dirname(tmbpath);
+            mkdirs(dirname) unless File.directory?(dirname)
+            tmb.write(tmbpath) { self.quality = config['quality'] || 70 }
+          rescue Magick::ImageMagickError
+            remove(thumbs)
+            thumbs = []
+            break
+          end
+
+          thumbs << tmbpath
+        end
+
+        thumbs.empty? ? nil : thumbs
+      end
+
+      def save_image(img, target, options = [])
+        if options['images'].kind_of?(::Hash)
+          target = resize_image(img, target, { '' => options['images'] })
+          target = target.first if target.kind_of?(::Array)
+        else
+          img.write(target)
+        end
+
+        thumbs = []
+        if target
+          if options['thumbs'].kind_of?(::Hash)
+            thumbs = resize_image(img, target, options['thumbs'])
+            raise SjException, i18n.__('Can not create thumbs for "%s"', target) unless thumbs.kind_of?(::Array)
+          end
+        else
+          raise SjException, i18n.__('Can not save image "%s"', target)
+        end
+
+        thumbs << target
+        return thumbs
       end
 
       def create_image(path, override = true)
+        begin
+          Magick::Image.read(path).first
+        rescue Magick::ImageMagickError
+          nil
+        end
       end
 
     class I18n
