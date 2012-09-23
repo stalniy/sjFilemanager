@@ -24,7 +24,7 @@ sjs.query=function(url,data,onload,nocache){
             this.onload(this.responseJS,this.responseText);
         }
     };
-    if (data.dropCache) {
+    if (data && data.dropCache) {
       delete data.dropCache;
       req.dropCache = true;
     }
@@ -123,10 +123,10 @@ var $_Request = new sjs.plugin({
         if(!this.hash2query(data,null,text,el)) return;
         hash=this.attr.user+':'+this.attr.pass+'@'+this.attr.url+'|'+text+"#"+this.attr.method;
 
-
         if (this.dropCache && $_Request.CACHE[hash]) {
            delete $_Request.CACHE[hash];
         }
+
         // Solve the query hashcode & return on cache hit.
         if(this.caching && !el.length){
             var cache = $_Request.CACHE[hash];
@@ -144,6 +144,7 @@ var $_Request = new sjs.plugin({
             if (!ldr) continue; // exclude possibly derived prototype properties from "for .. in".
             if (loader && cur!=loader) continue;
             // Create sending context.
+
             var ld = new ldr(this,{
                 queryText:  text.join('&'),
                 queryElem:  el,
@@ -185,8 +186,8 @@ var $_Request = new sjs.plugin({
                     js = (new Function("return " + txt))();
                 }
                 break;
-            case 'js'
-                new Function(txt)();
+            case 'js':
+                (new Function(text))();
                 break;
             }
         }
@@ -199,8 +200,8 @@ var $_Request = new sjs.plugin({
             t.status = 200;
             t.statusText = "OK";
         } else {
-            t.status = 500;
-            t.statusText = "Internal Server Error";
+            t.status = 400;
+            t.statusText = "Non API response";
         }
         t._changeReadyState(2);
         t._changeReadyState(3);
@@ -334,9 +335,11 @@ $_Request.LOADERS={
         },
            load:function(req){
             if(this.queryElem.length) return ['xml_no_form_upl'];
-            if(/^([a-z]+:\/\/[^\\\/]+)(.*)/i.test(this.url))
-                if (RegExp.$1.toLowerCase()!= document.location.protocol+'//'+ document.location.hostname.toLowerCase())
+            if(/^([a-z]+:\/\/[^\\\/]+)([^:]*(?:\d+)?)/i.test(this.url)) {
+                var l = document.location;
+                if (RegExp.$1.toLowerCase()!= l.protocol+'//'+ l.hostname.toLowerCase() + ':' + l.port)
                     return ['xml_no_diffdom', RegExp.$1];
+            }
             var tr=$_Request.get(), canSetHeaders;
             if(!tr) return ['xml_no'];
             canSetHeaders = !!(window.ActiveXObject||tr.setRequestHeader);

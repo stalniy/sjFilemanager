@@ -334,8 +334,8 @@ sjs.prototype={
     },
     attr:function(atr,v){
         var fn=function(){ sjs.setAttr(this,atr,v) };
-        if(typeof atr == 'object') fn=function(){for(var pr in atr) sjs.setAttr(this,pr,atr[pr])};
-        else if(typeof v == undefined){
+        if(typeof atr == 'object')fn=function(){for(var pr in atr) sjs.setAttr(this,pr,atr[pr])};
+        else if(v == undefined){
             var res=[];
             this.iterate(function(){res.push(sjs.getAttr(this,atr))});
             return res
@@ -1493,7 +1493,7 @@ sjs.extend({
         return elem&&elem.nodeName&&elem.nodeName.toUpperCase()==name.toUpperCase()
     },
     trim:function(t){
-        return t.replace(sjs.exp.BeginSpace,'').replace(sjs.exp.EndSpace,'')
+        return t && t.replace(sjs.exp.BeginSpace,'').replace(sjs.exp.EndSpace,'')
     },
     space:function(s){
         return sjs.trim(s.replace(sjs.exp.More2SpaceGlobal,' '))
@@ -1839,6 +1839,22 @@ sjs.extend({
 
         return r
     },
+    realpath: function (path) {
+        path = sjs.trim(path);
+        if (!path) {
+            return '';
+        }
+        var result = [];
+        path = path.split('/');
+        for (var i = 0, c = path.length; i < c; i++) {
+            if (path[i] == '..') {
+                result.pop();
+            } else if (path[i] != '.') {
+                result.push(path[i]);
+            }
+        }
+        return sjs.trim(result.join('/'));
+    },
     createChunk: function (elms) {
         var wrap = document.createDocumentFragment();
         for (var i = 0, l = elms.length; i < l; i++) {
@@ -1856,45 +1872,44 @@ sjs.when = function (promise, onOk, onErr) {
     }
 };
 
-sjs.whenAll = function () {
-    var p = sjs.promiseAll.apply(sjs, arguments);
-    p.then = p.resolve;
-    return p;
-};
-
 sjs.promiseAll = function () {
-    var isRejected = false, isQueued = false, count = arguments.length,
-        p = new sjs.promise(), result = [];
+    var isRejected = false, isQueued = false, values = sjs.toList(arguments),
+        count = values.length, p = new sjs.promise(), args = [];
 
-    var onErr = function () {
-            if (!isRejected) {
-                p.reject(arguments);
-                isRejected = true;
+    var onErr = function(index) {
+        return function () {
+                if (!isRejected) {
+                    p.reject([values[index], values]);
+                    isRejected = true;
+                }
             }
         },
-        onOk = function () {
-            result[this.__index__] = sjs.toList(arguments);
-            if (isQueued && !isRejected && --count == 0) {
-                var args = [];
-                for (var i = 0, c = result.length; i < c; i++) {
-                    args = args.concat(result[i]);
+        onOk = function(index) {
+            return function () {
+                args[index] = sjs.toList(arguments);
+                if (args[index].length == 1) {
+                    args[index] = args[index][0];
                 }
-                p.resolve(args);
-                all = null;
+                if (isQueued && !isRejected && --count == 0) {
+                    p.resolve(args);
+                }
             }
         };
 
     for (var i = 0, c = count; i < c; i++) {
-        arguments[i].__index__ = i;
-        sjs.when(arguments[i], onOk, onErr);
+        sjs.when(values[i], onOk(i), onErr(i));
     }
     isQueued = true;
+
+    p.then = p.resolve;
+    p.fail = p.reject;
     return p;
 };
 
 sjs.promise = function () {
     this.callbacks = { ok: [], err: [] };
     this.state = null;
+    this._data = { };
 };
 
 sjs.promise.prototype = {
@@ -1903,13 +1918,22 @@ sjs.promise.prototype = {
         if (object && !object.push) {
             object = [object];
         }
-        while (i--) {
-            fns[i].apply(this, object);
+
+        if (!i) {
+            this._data[type] = object;
+        } else {
+            while (i--) {
+                fns[i].apply(this, object);
+            }
+            this._data = {};
         }
     },
     resolve: function (obj) {
         if (sjs.isFn(obj)) {
             this.callbacks.ok.push(obj);
+            if (this.isOk()) {
+                this.resolve(this._data.ok);
+            }
         } else {
             this.state = true;
             this._call('ok', obj);
@@ -1919,6 +1943,9 @@ sjs.promise.prototype = {
     reject: function (obj) {
         if (sjs.isFn(obj)) {
             this.callbacks.err.push(obj);
+            if (this.isErr()) {
+                this.reject(this._data.err);
+            }
         } else {
             this.state = false;
             this._call('err', null);

@@ -21,17 +21,21 @@ var sjFileManager = new sjs.plugin({
         var self = this, queue = [];
         self._init(cfg, listeners);
 
-        queue.push(this.view.get('window.body'), this.view.get('dir.files_list'));
+        queue.push(this.view.getAll('window.body', 'dir.files_list'));
         queue.push(self._request(this.actionUrl), self._get(this.webRoot + '/config.json'));
 
-        sjs.whenAll.apply(sjs, queue).then(function (bodyTmpl, dirTmpl, files, config) {
-            self.files = files[0];
+        sjs.promiseAll.apply(sjs, queue).then(function (tmpls, data, config) {
+            var bodyTmpl = tmpls[0];
+
+            self.files = data[0].files;
             self.files.i18n = sjFileManager.i18n;
 
-            sjs.when(sjs.self._configure(config[0]), function () {
+            sjs.when(self._configure(config[0]), function (js , html) {
                 var content = sjs(cfg.container).html(bodyTmpl(self.files)).find('div.sj-fm-body');
                 self._attachTo(content);
             })
+        }).fail(function () {
+            throw "One of the required requests was failed";
         });
     },
     __destruct:function(){
@@ -52,7 +56,7 @@ var sjFileManager = new sjs.plugin({
         }, true);
         return waiter;
     },
-    _request: function (url, data, nocache) {
+    _request: function (url, data, cache) {
         var waiter = new sjs.promise(), self = this;
         this.wait(true);
         sjs.query(url, data, function (js, html) {
@@ -64,7 +68,7 @@ var sjFileManager = new sjs.plugin({
                 self.notify('serverOk', js, html);
                 waiter.resolve([js, html, self]);
             }
-        }, nocache);
+        }, !cache);
         return waiter;
     },
     _init: function (cfg, listeners) {
@@ -84,7 +88,7 @@ var sjFileManager = new sjs.plugin({
             throw "'container' setting is missed";
         }
 
-        this.webRoot = sjs('head > script[data-sjfm-root]', document.documentElement).attr('data-sjfm-root')[0];
+        this.webRoot = cfg.webRoot || sjs('head > script[data-sjfm-root]', document.documentElement).attr('data-sjfm-root')[0];
         if (!this.webRoot) {
             throw "Unable to find javascript root url. There is no \"data-sjfm-root\" attribute on filemanager.js script tag";
         }
@@ -128,7 +132,7 @@ var sjFileManager = new sjs.plugin({
             ['perms',     { title: sjFileManager.i18n("Permissions"),  dynamic: true }],
             ['upload',    { title: sjFileManager.i18n("Upload File(s)") }],
             ['download',  { title: sjFileManager.i18n("Download File(s) as Zip Archive") }],
-            ['dirInfo',   { title: sjFileManager.i18n("Information about File(s)") }],
+            ['stat',      { title: sjFileManager.i18n("Information about File(s)") }],
             ['transform', { title: sjFileManager.i18n("Fix Panel"), state: 'active' }]
         ].concat(this.actions);
 
@@ -607,11 +611,11 @@ var sjFileManager = new sjs.plugin({
     },
     refreshAction:function(btn) {
         var path=this.getCurrentPath();
-        this.opendirAction(path.substr(0,path.length-1));
+        this.opendirAction(path.substr(0,path.length-1), null, true);
     },
-    opendirAction:function(dir) {
+    opendirAction:function(dir, rowNode, dropCache) {
         var tr = this.lastSelected;
-        this._request(this.actionUrl, { path: dir })
+        this._request(this.actionUrl, { path: sjs.realpath(dir), dropCache: !!dropCache }, true)
             .resolve(ResponseProcessor.opendir)
             .reject(function(js, html) {
                 sjs(tr).find('label').removeClass('loading');
@@ -725,7 +729,7 @@ var sjFileManager = new sjs.plugin({
             arguments: { action: 'perms' }
         }, 'actions.perms.permissions_form');
     },
-    dirInfoAction:function(btn) {
+    statAction:function(btn) {
         this.makeStek();
         var files = [];
         if (!this.emptyStek()) {
@@ -744,7 +748,7 @@ var sjFileManager = new sjs.plugin({
             move: true,
             postData: {
                 files:  files,
-                action: 'dir_info',
+                action: 'stat',
                 path: path
             }
         }, 'window.file_info');
@@ -931,9 +935,10 @@ var ResponseProcessor = {
     },
 
     createDir: function(event) {
-        var mn = sjFileManager.get(this), dirname = sjs.trim(this.value);
+        var mn = sjFileManager.get(this), dirname = sjs.trim(this.value),
+            content = mn.getContent();
 
-        mn.getContent().unselectable();
+        content.unselectable();
         if (this.isEscaped || !dirname) {
             sjs(this).parent(2).remove();
             mn.clearStek('dir');
@@ -944,6 +949,7 @@ var ResponseProcessor = {
                 dirname: dirname
             }).resolve(ResponseProcessor.base);
         }
+        mn.findLastSelected(content.first()[0]);
         mn.reset();
     },
     rename: function(e){
@@ -999,7 +1005,7 @@ var ResponseProcessor = {
 };
 
 sjFileManager.createWindow = function(fm, cfg, tmplId){
-    var w = new sjWindow(cfg.url, sjs.extend({
+    return new sjWindow(cfg.url, sjs.extend({
         title: sjFileManager.i18n('Information'),
         tmpl:'#sjWindowTmpl',
         isModal:true,
@@ -1031,7 +1037,6 @@ sjFileManager.createWindow = function(fm, cfg, tmplId){
             self.position();
         });
     });
-    return w;
 };
 
 var Config = {
@@ -1081,6 +1086,7 @@ while(i--) {
 }
 
 sjFileManager.configure = function (options) {
+    options = options || {};
     if (options.i18n) {
         this.i18n(options.i18n);
     }
@@ -1114,27 +1120,26 @@ sjFileManager.getInstance = function() {
         return Instance;
     }
 
-    if (!Config.get('window') || !Config.get('url') || !Config.get('fm')) {
+    if (!Config.get('window') || !Config.get('fm')) {
         throw "sjFilemanager was not configured. Use sjFilemanager.configure method!";
     }
 
-    var w = new sjWindow(Config.get('url'), Config.get('window'), function(content, js, html) {
-        if (!js.files) {
-            Instance.reject([js, html]);
-            throw "Invalid server response";
-        }
+    var w = new sjWindow(null, Config.get('window'), function(content, js, html) {
+        var self = this;
+        Config.set('fm.container', content).get('fm.listeners.ready').unshift(function() {
+            content.width('auto').height('auto');
+            self.show().toContentSize();
+            self.position();
 
-        Config.set('fm.files', js.files).set('fm.container', content);
-        Config.get('fm.listeners.ready').unshift(function() {
             Instance.resolve(this);
             Instance = this;
         });
         var fm = new sjFileManager(Config.get('fm'), Config.get('fm.listeners'));
-        fm.windows.main = this;
+        fm.windows.main = self;
+        self.hide();
 
-        this.position().toInnerSize();
-        sjs.className.set(this.window, 'sjFilemanagerWindow');
-        sjs.className.set(this.clone, 'sjFilemanagerWindow');
+        sjs.className.set(self.window, 'sjFilemanagerWindow');
+        sjs.className.set(self.clone, 'sjFilemanagerWindow');
     });
     sjs(w.window).removeClass('ie6_width_fix')
         .find('.sjs_wcontent')
@@ -1157,7 +1162,7 @@ sjFileManager.create = function(options) {
         this.setUploader(sjFileManager.getUploader(this.webRoot, cfg.get('fm.uploader')));
 
         MediaManager.renderView(sjFileManager.i18n.get());
-        var fm = this, c = sjs('#sjMediamanager').insertBefore(fm.getContent().parent(2))
+        var fm = this, c = sjs('#sjMediamanager').insertBefore(fm.getContent().parent(1))
             .find('.sjMediaWrapper');
         MediaManager.getInstance(c, {
             panel: '.sjMediaPanel',
@@ -1188,13 +1193,12 @@ sjFileManager.create = function(options) {
     });
 
     cfg.get('fm.listeners.ready').push(function (content) {
-        var scr = new sjs.ScrollableContent(content.parent(2), {
-            url: cfg.get('fm.actionUrl'),
+        var fm = this, scr = new sjs.ScrollableContent(content.parent(2), {
+            url:  fm.actionUrl,
             page: 2,
             data: { format: 'json' }
         });
 
-        var fm = this;
         scr.on('load', function (data) {
             var response = data.js;
             if (response.files && response.files.source) {

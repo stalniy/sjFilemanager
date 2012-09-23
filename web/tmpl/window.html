@@ -40,15 +40,16 @@
 </script>
 
 <script type="text/html" id="sj_filemanager_file_info">
+    <? var labels = $.i18n('file_info_labels'), fields = ['type', 'size', 'mode', 'mtime']; ?>
     <div style="padding:4px" class="span-table">
         <span class="no_bold label span-cell">
-        <? for (var i = 0, list = $.i18n('file_info_labels'), c = list.length; i < c; i++) { ?>
-            <span><?= list[i] ?></span>
+        <? for (var i = 0, c = fields.length; i < c; i++) { ?>
+            <span><?= labels[fields[i]] ?></span>
         <? } ?>
         </span>
         <span class="margin-left20 no_bold label span-cell">
-        <? for (var i in $.file_info) { ?>
-            <span> : <?= $.file_info[i] ?></span>
+        <? for (var i = 0, c = fields.length; i < c; i++) { ?>
+            <span> : <?= $.file_info[fields[i]] ?></span>
         <? } ?>
         </span>
     </div>
