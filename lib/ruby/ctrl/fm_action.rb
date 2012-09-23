@@ -116,7 +116,6 @@ module SjFileManager
 
       dirname.strip!
       path = get_path
-      puts path
       raise SjException, @context.i18n.__('Unable to create folder. Folder with this name already exists') if File.directory?(path + dirname)
 
       raise SjException, @context.i18n.__('Unable to create folder. Permissions denied') unless manager!.filesystem.mkdirs(path + dirname)
