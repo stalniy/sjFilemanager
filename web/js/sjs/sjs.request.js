@@ -337,7 +337,7 @@ $_Request.LOADERS={
             if(this.queryElem.length) return ['xml_no_form_upl'];
             if(/^([a-z]+:\/\/[^\\\/]+)([^:]*(?:\d+)?)/i.test(this.url)) {
                 var l = document.location;
-                if (RegExp.$1.toLowerCase()!= l.protocol+'//'+ l.hostname.toLowerCase() + ':' + l.port)
+                if (RegExp.$1.toLowerCase()!= l.protocol+'//'+ l.hostname.toLowerCase())
                     return ['xml_no_diffdom', RegExp.$1];
             }
             var tr=$_Request.get(), canSetHeaders;
@@ -351,7 +351,7 @@ $_Request.LOADERS={
                 this.queryText='';
                 if(this.url.length>$_Request.MAX_URL_LEN) return ['url_too_long', $_Request.MAX_URL_LEN];
             }else if(this.method=='POST' && !canSetHeaders)return ['xml_no_headers'];
-            this.url+=(this.url.indexOf('?')>=0? '&' : '?')+'_JsRequest='+(req.caching? '0' : this.id) + '-xml';
+            this.url+=(this.url.indexOf('?')>=0? '&' : '?')+'_JsRequest=' + this.id + '-xml';
             var id = this.id;
             tr.onreadystatechange=function(){
                 if(tr.readyState!=4) return;
