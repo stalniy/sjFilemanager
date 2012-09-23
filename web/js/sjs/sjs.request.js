@@ -14,31 +14,22 @@
  * @modifyby  Stotskiy Sergiy <serjo@freaksidea.com> 2010-2011
  * @version   5.x $Id$
  */
-sjs.query=function(url,data,onload,nocache,args,cfg){
+sjs.query=function(url,data,onload,nocache){
     var req=new $_Request();
     req.caching=!nocache;
-    req.watchCaching = true;
     req.onload=onload;
-
-    cfg = cfg || {};
-    if(sjs.isFn(cfg.onerror)){
-        req.onerror=cfg.onerror;
-    }
-    if(args) {
-        req.args = args;
-    }
-    if(cfg.loader) {
-        this.loader = cfg.loader;
-    }
 
     req.onreadystatechange=function(){
         if(this.readyState==4 && sjs.isFn(this.onload)){
-         this.onload(this.responseJS,this.responseText);
-         this.args = null;
+            this.onload(this.responseJS,this.responseText);
         }
     };
+    if (data.dropCache) {
+      delete data.dropCache;
+      req.dropCache = true;
+    }
 
-    req.open(cfg.method||null,url,true);
+    req.open(null,url,true);
     req.send(data);
     return req
 };
@@ -87,7 +78,7 @@ var $_Request = new sjs.plugin({
         return (u || c) ? RegExp.$1 : '';
     },
     onerror:function(txt,js){// if xmlHttpRequest and server don't response
-        alert("Error request [status = "+this.status+"]:\n\n"+this.getAllResponseHeaders()+"\n\nurl: "+this.load.url);
+        alert("Error request [status = "+this.status+"]:\n\n"+this.getAllResponseHeaders()+"\n\nurl: "+this.load && this.load.url);
     },
     abort:function(){
         if (this.load && this.load.abort) this.load.abort();
@@ -132,6 +123,10 @@ var $_Request = new sjs.plugin({
         if(!this.hash2query(data,null,text,el)) return;
         hash=this.attr.user+':'+this.attr.pass+'@'+this.attr.url+'|'+text+"#"+this.attr.method;
 
+
+        if (this.dropCache && $_Request.CACHE[hash]) {
+           delete $_Request.CACHE[hash];
+        }
         // Solve the query hashcode & return on cache hit.
         if(this.caching && !el.length){
             var cache = $_Request.CACHE[hash];
@@ -140,9 +135,6 @@ var $_Request = new sjs.plugin({
                 this._dataReady(cache[0], cache[1]);
                 return false;
             }
-        } else if (this.watchCaching && $_Request.CACHE[hash]) {
-           $_Request.CACHE[hash]=null;
-           delete $_Request.CACHE[hash];
         }
         var loader = (this.loader || '').toLowerCase(),errors=[];
         if (loader && !$_Request.LOADERS[loader]) return this._error('unk_loader', loader);
@@ -182,16 +174,24 @@ var $_Request = new sjs.plugin({
     },
     _dataReady:function(text, js){
         var t=this;
+        if (js == null) {
+            var ext = sjs.pathinfo(this.attr.url||'').extension;
+            switch (ext) {
+            case 'json':
+                var txt = text.replace(/^\s*(?:\/\/|#).+\s/gm, '');
+                if (window.JSON) {
+                    js = window.JSON.parse(txt);
+                } else {
+                    js = (new Function("return " + txt))();
+                }
+                break;
+            case 'js'
+                new Function(txt)();
+                break;
+            }
+        }
         if (t.caching && t.load) {
            $_Request.CACHE[t.load.hash] = [text, js];
-        }
-        if (js == null && this.getResponseHeader('Content-Type') == 'application/json') {
-            var txt = text.replace(/^\s*(?:\/\/|#).+\s/gm, '');
-            if (window.JSON) {
-                js = window.JSON.parse(txt);
-            } else {
-                js = (new Function("return " + txt))();
-            }
         }
         t.responseText=text;
         t.responseJS = js;

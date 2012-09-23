@@ -34,5 +34,7 @@
     "File name can not contains following symmbols: \/:*?<>|\"'": "Имя файла не должно содержать таких символов: \/:*?<>|\"'",
     "Unable to create folder. Permissions denied": "Невозможно создать директорию. Недостаточно прав доступа",
     "Unable to remove directory. It seems directory is not empty or not enough permissions.": "Невозможно удалить каталог. Возможно директория не пустая или недостаточно прав",
-    "Unable to remove file. Maybe not enough permissions?": "Невозможно удалить файл. Возможно недостаточно прав?"
+    "Unable to remove file. Maybe not enough permissions?": "Невозможно удалить файл. Возможно недостаточно прав?",
+    "Directory \"%s\" is not readable": "Директория \"%s\" не существует или недостаточно прав для ее чтение",
+    "Path \"%s\" is not a directory": "\"%s\" не является каталогом"
 }

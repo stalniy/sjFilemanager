@@ -18,13 +18,20 @@
 sjs.globals.fm={};
 var sjFileManager = new sjs.plugin({
     __construct: function(cfg, listeners) {
-        this._init(cfg, listeners);
+        var self = this, queue = [];
+        self._init(cfg, listeners);
 
-        var self = this;
-        sjs.when(this.view.getAll('window.body', 'dir.files_list'),function (render) {
+        queue.push(this.view.get('window.body'), this.view.get('dir.files_list'));
+        queue.push(self._request(this.actionUrl), self._get(this.webRoot + '/config.json'));
+
+        sjs.whenAll.apply(sjs, queue).then(function (bodyTmpl, dirTmpl, files, config) {
+            self.files = files[0];
             self.files.i18n = sjFileManager.i18n;
-            var content = sjs(cfg.container).html(render(self.files)).find('div.sj-fm-body');
-            self._attachTo(content);
+
+            sjs.when(sjs.self._configure(config[0]), function () {
+                var content = sjs(cfg.container).html(bodyTmpl(self.files)).find('div.sj-fm-body');
+                self._attachTo(content);
+            })
         });
     },
     __destruct:function(){
@@ -37,7 +44,15 @@ var sjFileManager = new sjs.plugin({
         }
         this.windows=this.requestData=this.events=this.lastSelected=this.id=null;
     },
-    _request: function (url, data) {
+    _get: function (url) {
+        var waiter = new sjs.promise(), self = this;
+        this.wait(true);
+        sjs.query(url, null, function (js, html) {
+            waiter.resolve([js, html, self]);
+        }, true);
+        return waiter;
+    },
+    _request: function (url, data, nocache) {
         var waiter = new sjs.promise(), self = this;
         this.wait(true);
         sjs.query(url, data, function (js, html) {
@@ -49,11 +64,10 @@ var sjFileManager = new sjs.plugin({
                 self.notify('serverOk', js, html);
                 waiter.resolve([js, html, self]);
             }
-        }, 1);
+        }, nocache);
         return waiter;
     },
     _init: function (cfg, listeners) {
-        this.files   = cfg.files;
         this.windows = {};
         this.events  = listeners || {};
         this.actions = [];
@@ -66,14 +80,29 @@ var sjFileManager = new sjs.plugin({
         this.actionUrl = (cfg.actionUrl || '').replace(/\/+$/, '')
         this.rootUrl   = (cfg.rootUrl   || '').replace(/\/+$/, '');
 
-        this.view = new sjs.View({
-            baseUrl:  cfg.templateUrl,
-            idPrefix: 'sj_filemanager_'
-        });
-
         if (!cfg.container) {
             throw "'container' setting is missed";
         }
+
+        this.webRoot = sjs('head > script[data-sjfm-root]', document.documentElement).attr('data-sjfm-root')[0];
+        if (!this.webRoot) {
+            throw "Unable to find javascript root url. There is no \"data-sjfm-root\" attribute on filemanager.js script tag";
+        }
+        this.webRoot = this.webRoot.replace(/\/+$/, '');
+        this.view = new sjs.View({
+            baseUrl:  this.webRoot + '/tmpl',
+            idPrefix: 'sj_filemanager_'
+        });
+
+        if (!this.actionUrl) {
+            this.actionUrl = this.webRoot;
+        }
+    },
+    _configure: function (config) {
+        this.rootUrl = (config.root || '').replace(/%[\w_-]+%/g, '');
+        this.lang    = config.lang;
+
+        return this._get(this.webRoot + '/js/i18n/' + this.lang + '.js');
     },
     _attachTo: function (content) {
         this.id = content[0].sjsEventId;
@@ -358,7 +387,7 @@ var sjFileManager = new sjs.plugin({
     },
     addStandardHandlers: function() {
         if (!this.hasListeners('serverError')) {
-            this.addListener('serverError', function(js, html) {
+            this.when('serverError', function(js, html) {
                 sjs('#sjPopup').text(js.response.msg).show(true).animate('opacity', {
                     start: 0, end: 1,
                     onEnd: function(dom, cfg) {
@@ -372,7 +401,7 @@ var sjFileManager = new sjs.plugin({
             });
         }
         if (!this.hasListeners('displayPath')) {
-            this.addListener('displayPath', function(path) {
+            this.when('displayPath', function(path) {
                 var fullPath = path;
                 path = (path || '/').replace(/\/+$/, '').split('/');
 
@@ -421,7 +450,7 @@ var sjFileManager = new sjs.plugin({
             this.events[eventName] = null;
         }
     },
-    addListener: function(eventName, listener) {
+    when: function(eventName, listener) {
         if (sjs.isFn(listener)) {
             if (!this.events[eventName]) {
                 this.events[eventName] = [];
@@ -1064,8 +1093,7 @@ sjFileManager.configure = function (options) {
     Config.set('url', url)
         .set('fm.container', options.container, '#sjFilemanager')
         .set('fm.rootUrl', options.root)
-        .set('fm.actionUrl', sjs.trim(options.url))
-        .set('fm.templateUrl', options.tmplUrl);
+        .set('fm.actionUrl', sjs.trim(options.url));
 
     options.window = options.window || {};
     Config.set('window.tmpl', '#sjWindowTmpl')
@@ -1118,128 +1146,17 @@ sjFileManager.getInstance = function() {
     return Instance;
 };
 
-var HelperMixin = {
-    exportToField: function (field, type) {
-        this.makeStek();
-        if (this.fileStek && this.fileStek.length) {
-            var url = this.rootUrl + this.getCurrentPath();
-
-            if (!field.sjs) {
-                field = sjs(field);
-            }
-
-            switch (type) {
-                case 'multiple':
-                    field.prop('value', url + '|' + this.fileStek.join(":"));
-                break;
-                default:
-                    field.prop('value', url + this.fileStek[0]);
-                break;
-            }
-            field.trigger('change');
-            this.windows.main.close();
-        }
-    }
-};
-
-sjFileManager.choiseCallback = function(field, type) {
-    return sjs.when(sjFileManager.getInstance(), function (fm) {
-        path = String(field.value).replace(fm.rootUrl, '');
-        path && fm.open(
-            path.charAt(path.length - 1) == '/'
-            ? path
-            : sjs.pathinfo(path).dirname
-        );
-        fm.addAction('insert', {
-            before: 'refresh',
-            dynamic: true,
-            'class': 'sjfm_files_insert',
-            'for': 'files'
-        }, HelperMixin.exportToField.bind(fm, field, type));
-    });
-};
-
-var i18n = {};
-sjFileManager.i18n = function(data) {
-    if (data.constructor != String) {
-        i18n = data;
-    } else if (i18n[data]) {
-        return i18n[data];
-    } else {
-        return data;
-    }
-};
-
-window.sjFileManager = sjFileManager;
-}())
-
-sjFileManager.get = function(obj){
-    if (!obj || !obj.__FileManageId__) {
-        return null;
-    }
-    return sjs.globals.fm[obj.__FileManageId__];
-};
-
-sjFileManager.link = function(obj, id) {
-    if (!obj) {
-        return null;
-    }
-    return obj.__FileManageId__ = id;
-};
-
-sjFileManager.getUploader = function(url, cfg){
-    var baseDir = url.charAt(url.length - 1) == '/' ? url : sjs.pathinfo(url).dirname;
-    return new SWFUpload(sjs.extend({
-        lazy: true,
-        upload_url: url,
-        flash_url: baseDir + "/js/swfupload/swfupload.swf",
-        file_post_name: 'files',
-        custom_settings: {
-            progressTarget : "sjFmUploadProgress"
-        },
-        file_size_limit: "300MB",
-        file_types: "*.*",
-        file_types_description: "All Files",
-        file_upload_limit: 100,
-        file_queue_limit: 0,
-        button_text_left_padding: 5,
-        button_text_top_padding: 1,
-        button_image_url: baseDir + "/js/swfupload/sbtn.png",
-        button_placeholder_id: "sjFmButtonPlaceHolder",
-        button_text: '<span class="submit">' + sjFileManager.i18n('Files') + '</span>',
-        button_width: "65",
-        button_text_style: ".submit { font-size: 11; color:#000000; font-family:Tahoma, Arial, serif; }",
-        button_height: "20",
-        file_queued_handler: fileQueued,
-        file_queue_error_handler: fileQueueError,
-        file_dialog_complete_handler: sjFileManager.prototype.onUploaderReady,
-        upload_start_handler: uploadStart,
-        upload_progress_handler: uploadProgress,
-        upload_error_handler: uploadError,
-        upload_success_handler: function(file, serverData) {
-            if (serverData) {
-                this.hasErrors = true;
-            }
-            uploadSuccess.call(this, file, serverData);
-            var mn = this.getFileManager();
-            if (mn) {
-                mn.onUploadSuccess(file, serverData);
-            }
-        }
-    }, cfg || {}));
-};
-
 sjFileManager.create = function(options) {
+    if (Instance.is_configured) {
+        return false;
+    }
     sjWindow.renderView();
-    MediaManager.renderView(options.i18n);
 
     var cfg = sjFileManager.configure(options);
     cfg.get('fm.listeners.ready').push(function() {
-        this.setUploader(sjFileManager.getUploader(
-            cfg.get('fm.actionUrl'),
-            cfg.get('fm.uploader')
-        ));
+        this.setUploader(sjFileManager.getUploader(this.webRoot, cfg.get('fm.uploader')));
 
+        MediaManager.renderView(sjFileManager.i18n.get());
         var fm = this, c = sjs('#sjMediamanager').insertBefore(fm.getContent().parent(2))
             .find('.sjMediaWrapper');
         MediaManager.getInstance(c, {
@@ -1297,9 +1214,123 @@ sjFileManager.create = function(options) {
             data.path = fm.getCurrentPath();
         });
 
-        fm.addListener('opendir', function () {
-            scr.clearCache();
-        });
+        fm.when('opendir', scr.clearCache.bind(scr));
     });
+    Instance.is_configured = true;
     return cfg;
+};
+
+var HelperMixin = {
+    exportToField: function (field, type) {
+        this.makeStek();
+        if (this.fileStek && this.fileStek.length) {
+            var url = this.rootUrl + this.getCurrentPath();
+
+            if (!field.sjs) {
+                field = sjs(field);
+            }
+
+            switch (type) {
+                case 'multiple':
+                    field.prop('value', url + '|' + this.fileStek.join(":"));
+                break;
+                default:
+                    field.prop('value', url + this.fileStek[0]);
+                break;
+            }
+            field.trigger('change');
+            this.windows.main.close();
+        }
+    }
+};
+
+sjFileManager.choiseCallback = function(field, type) {
+    return sjs.when(sjFileManager.getInstance(), function (fm) {
+        path = String(field.value).replace(fm.rootUrl, '');
+        path && fm.open(
+            path.charAt(path.length - 1) == '/'
+            ? path
+            : sjs.pathinfo(path).dirname
+        );
+        fm.addAction('insert', {
+            before: 'refresh',
+            dynamic: true,
+            'class': 'sjfm_files_insert',
+            'for': 'files'
+        }, HelperMixin.exportToField.bind(fm, field, type));
+    });
+};
+
+var i18n = {};
+sjFileManager.i18n = function(data) {
+    if (data.constructor != String) {
+        i18n = data;
+    } else if (i18n[data]) {
+        return i18n[data];
+    } else {
+        return data;
+    }
+};
+
+sjFileManager.i18n.get = function () {
+    return i18n;
+};
+
+window.sjFileManager = sjFileManager;
+}())
+
+sjFileManager.get = function(obj){
+    if (!obj || !obj.__FileManageId__) {
+        return null;
+    }
+    return sjs.globals.fm[obj.__FileManageId__];
+};
+
+sjFileManager.link = function(obj, id) {
+    if (!obj) {
+        return null;
+    }
+    return obj.__FileManageId__ = id;
+};
+
+sjFileManager.getUploader = function(url, cfg){
+    var baseDir = url;
+    return new SWFUpload(sjs.extend({
+        lazy: true,
+        upload_url: url,
+        flash_url: baseDir + "/js/swfupload/swfupload.swf",
+        file_post_name: 'files',
+        custom_settings: {
+            progressTarget : "sjFmUploadProgress"
+        },
+        file_size_limit: "300MB",
+        file_types: "*.*",
+        file_types_description: "All Files",
+        file_upload_limit: 100,
+        file_queue_limit: 0,
+        button_text_left_padding: 5,
+        button_text_top_padding: 1,
+        button_image_url: baseDir + "/js/swfupload/sbtn.png",
+        button_placeholder_id: "sjFmButtonPlaceHolder",
+        button_text: '<span class="submit">' + sjFileManager.i18n('Files') + '</span>',
+        button_width: "65",
+        button_text_style: ".submit { font-size: 11; color:#000000; font-family:Tahoma, Arial, serif; }",
+        button_height: "20",
+        file_queued_handler: fileQueued,
+        file_queue_error_handler: fileQueueError,
+        file_dialog_complete_handler: sjFileManager.prototype.onUploaderReady,
+        upload_start_handler: uploadStart,
+        upload_progress_handler: uploadProgress,
+        upload_error_handler: uploadError,
+        upload_success_handler: function(file, serverData) {
+            if (serverData) {
+                this.hasErrors = true;
+            }
+            uploadSuccess.call(this, file, serverData);
+            var mn = this.getFileManager();
+            if (mn) {
+                mn.onUploadSuccess(file, serverData);
+            }
+        }
+    }, cfg || {}));
 };

@@ -1856,6 +1856,12 @@ sjs.when = function (promise, onOk, onErr) {
     }
 };
 
+sjs.whenAll = function () {
+    var p = sjs.promiseAll.apply(sjs, arguments);
+    p.then = p.resolve;
+    return p;
+};
+
 sjs.promiseAll = function () {
     var isRejected = false, isQueued = false, count = arguments.length,
         p = new sjs.promise(), result = [];
