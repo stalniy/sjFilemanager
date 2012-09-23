@@ -49,9 +49,25 @@ window.undefined=window.undefined;
         return window.setInterval(function(){ return __method.apply(__method, args)},time*1000)
     };
     if (!fn.bind) {
-        fn.bind = function (ctx) {
-            var __method=this, args=Array.prototype.slice.call(arguments,1);
-            return function(){ return __method.apply(ctx, args) };
+        fn.bind = function (oThis) {
+            if (typeof this !== "function") {
+              throw new TypeError("Function.prototype.bind - what is trying to be bound is not callable");
+            }
+
+            var aArgs = Array.prototype.slice.call(arguments, 1),
+                fToBind = this,
+                fNOP = function () {},
+                fBound = function () {
+                    return fToBind.apply(this instanceof fNOP && oThis
+                        ? this
+                        : oThis,
+                        aArgs.concat(Array.prototype.slice.call(arguments)));
+                };
+
+            fNOP.prototype = this.prototype;
+            fBound.prototype = new fNOP();
+
+            return fBound;
         };
     }
 
@@ -1968,7 +1984,7 @@ sjs.ScrollableContent = new sjs.plugin({
         options = options || {};
         var self = this;
         this.cfg = {};
-        this.page   = options.page || 1;
+        this.page   = options.page || 2;
         this.cfg.loadAfterHeight = options.loadAfterHeight || 95;
         this.cfg.data = options.data || {};
         this.cfg.url  = options.url;
@@ -1978,11 +1994,13 @@ sjs.ScrollableContent = new sjs.plugin({
             data: new sjs.promise()
         };
         this.cfg.scrollWhile = options.scrollWhile || sjs.$empty;
-        sjs(content).mousewheel(function() {
+
+        var watcher = function() {
             if (this.offsetHeight >= this.scrollHeight || self.cfg.scrollWhile.call(self) !== false && Math.round(this.scrollTop / ( this.scrollHeight - this.clientHeight ) * 100 ) > self.cfg.loadAfterHeight) {
                 self.load()
             }
-        });
+        };
+        sjs(content).on('scroll').add(watcher).mousewheel(watcher);
     },
     load: function (force) {
         var self = this, key = this.page;
@@ -2006,7 +2024,8 @@ sjs.ScrollableContent = new sjs.plugin({
         this.events[event].resolve(fn);
         return this;
     },
-    clearCache: function () {
+    reset: function () {
+        this.page = 2;
         this.loaded = {};
         return this;
     }

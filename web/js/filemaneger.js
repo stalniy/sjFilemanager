@@ -103,7 +103,7 @@ var sjFileManager = new sjs.plugin({
         }
     },
     _configure: function (config) {
-        this.rootUrl = (config.root || '').replace(/%[\w_-]+%/g, '');
+        this.rootUrl = config.rootUrl || (config.root || '').replace(/%[\w_-]+%/g, '');
         this.lang    = config.lang;
 
         return this._get(this.webRoot + '/js/i18n/' + this.lang + '.js');
@@ -1218,7 +1218,8 @@ sjFileManager.create = function(options) {
             data.path = fm.getCurrentPath();
         });
 
-        fm.when('opendir', scr.clearCache.bind(scr));
+        var clear = scr.reset.bind(scr);
+        fm.when('opendir', clear).when('refresh', clear);
     });
     Instance.is_configured = true;
     return cfg;
