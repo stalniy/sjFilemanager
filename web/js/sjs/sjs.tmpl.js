@@ -15,7 +15,7 @@
             } else if (dom = document.getElementById(str)) {
                 fn = tmpl(dom.innerHTML);
             } else {
-                throw "Non-valid template identificator: " + str;
+                throw String("Non-valid template identificator: " + str);
             }
         } else {
             // Generate a reusable function that will serve as a template
