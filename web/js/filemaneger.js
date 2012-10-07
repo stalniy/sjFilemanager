@@ -1099,7 +1099,8 @@ sjFileManager.configure = function (options) {
     Config.set('url', url)
         .set('fm.container', options.container, '#sjFilemanager')
         .set('fm.rootUrl', options.root)
-        .set('fm.actionUrl', sjs.trim(options.url));
+        .set('fm.actionUrl', sjs.trim(options.url))
+        .set('fm.webRoot', options.webRoot);
 
     options.window = options.window || {};
     Config.set('window.tmpl', '#sjWindowTmpl')
