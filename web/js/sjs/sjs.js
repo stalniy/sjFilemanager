@@ -1834,6 +1834,7 @@ sjs.extend({
         return fl + str;
     },
     pathinfo: function(str) {
+        str = str.replace(/\?.+$/, '');
         var r = {}, p = str.lastIndexOf('/');
 
         if (p == -1) {
