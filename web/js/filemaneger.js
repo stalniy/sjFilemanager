@@ -1160,7 +1160,7 @@ sjFileManager.create = function(options) {
 
     var cfg = sjFileManager.configure(options);
     cfg.get('fm.listeners.ready').push(function() {
-        this.setUploader(sjFileManager.getUploader(this.webRoot, cfg.get('fm.uploader')));
+        this.setUploader(sjFileManager.getUploaderFor(this, cfg.get('fm.uploader')));
 
         MediaManager.renderView(sjFileManager.i18n.get());
         var fm = this, c = sjs('#sjMediamanager').insertBefore(fm.getContent().parent(1))
@@ -1299,11 +1299,11 @@ sjFileManager.link = function(obj, id) {
     return obj.__FileManageId__ = id;
 };
 
-sjFileManager.getUploader = function(url, cfg){
-    var baseDir = url;
+sjFileManager.getUploaderFor = function(fm, cfg){
+    var baseDir = fm.webRoot;
     return new SWFUpload(sjs.extend({
         lazy: true,
-        upload_url: url,
+        upload_url: fm.actionUrl,
         flash_url: baseDir + "/js/swfupload/swfupload.swf",
         file_post_name: 'files',
         custom_settings: {
@@ -1333,10 +1333,7 @@ sjFileManager.getUploader = function(url, cfg){
                 this.hasErrors = true;
             }
             uploadSuccess.call(this, file, serverData);
-            var mn = this.getFileManager();
-            if (mn) {
-                mn.onUploadSuccess(file, serverData);
-            }
+            fm.onUploadSuccess(file, serverData);
         }
     }, cfg || {}));
 };
